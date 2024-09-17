@@ -21,7 +21,7 @@ export default function Dashboard() {
         </div>
 
         <div className="wd-dashboard-course"> {/* Foundations of AI*/}
-            <img src="/images/ai.jpg" width={200} alt="an image representing ai"/>
+            <img src="/images/ai.jpg" width={200} alt="ai"/>
             <div>
                 <Link className="wd-dashboard-course-link" to="/Kanbas/Courses/5100/Home">
                     CS5100 AI
