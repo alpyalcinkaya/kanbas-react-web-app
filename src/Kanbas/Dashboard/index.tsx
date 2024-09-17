@@ -7,7 +7,7 @@ export default function Dashboard() {
       <h2 id="wd-dashboard-published">Published Courses (12)</h2> <hr />
       <div id="wd-dashboard-courses">
         <div className="wd-dashboard-course"> {/* Web Dev */}
-          <img src="/images/reactjs.jpg" width={200} alt="react image"/>
+          <img src="/images/reactjs.jpg" width={200} alt="react"/>
           <div>
             <Link className="wd-dashboard-course-link"
               to="/Kanbas/Courses/1234/Home">
@@ -34,7 +34,7 @@ export default function Dashboard() {
         </div>
 
         <div className="wd-dashboard-course">  {/* Game Programming */}
-            <img src="/images/gameprog.jpg" width={200} alt="an image illustrating game dev"/>
+            <img src="/images/gameprog.jpg" width={200} alt="game dev"/>
             <div>
                 <Link className="wd-dashboard-course-link" to="/Kanbas/Courses/5540/Home">
                     CS5540 Game Programming
@@ -47,7 +47,7 @@ export default function Dashboard() {
         </div>
 
         <div className="wd-dashboard-course">  {/* Discrete Structures */}
-            <img src="/images/discrete.jpg" width={200} alt="an image illustratic discrete math"/>
+            <img src="/images/discrete.jpg" width={200} alt="discrete math"/>
             <div>
                 <Link className="wd-dashboard-course-link" to="/Kanbas/Courses/5002/Home">
                     CS5002 Discrete Structures 
@@ -60,7 +60,7 @@ export default function Dashboard() {
         </div>
 
         <div className="wd-dashboard-course">  {/* Algorithms */}
-            <img src="/images/algo.jpg" width={200} alt="an image representing algorithms" />
+            <img src="/images/algo.jpg" width={200} alt="representing algorithms" />
             <div>
                 <Link className="wd-dashboard-course-link" to="/Kanbas/Courses/5800/Home">
                     CS5800 Algorithms
@@ -74,7 +74,7 @@ export default function Dashboard() {
         </div>
 
         <div className="wd-dashboard-course">  {/* Object Oriented Programming */}
-            <img src="/images/oop.jpg" width={200} alt="an image representing object-oriented programming"/>
+            <img src="/images/oop.jpg" width={200} alt="object-oriented programming"/>
             <div>
                 <Link className="wd-dashboard-course-link" to="/Kanbas/Courses/5004/Home">
                     CS5004 Java
@@ -88,7 +88,7 @@ export default function Dashboard() {
         </div>
         
         <div className="wd-dashboard-course">  {/* Intro to Cybersecurity CY 5770*/}
-            <img src="/images/cybersecurity.jpg" width={200} alt="an image representing cybersecurity"/>
+            <img src="/images/cybersecurity.jpg" width={200} alt="representing cybersecurity"/>
             <div>
                 <Link className="wd-dashboard-course-link" to="/Kanbas/Courses/5770/Home">
                     CS5770 Cybersecurity 
