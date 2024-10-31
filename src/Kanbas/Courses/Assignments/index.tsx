@@ -1,16 +1,28 @@
 import React from "react";
-import { FaPlus, FaChevronDown } from "react-icons/fa6";
+import { FaPlus, FaTrash, FaChevronDown } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { BsGripVertical, BsThreeDotsVertical } from "react-icons/bs";
 import { LuClipboardEdit } from "react-icons/lu";
 import GreenCheckmark from "../Modules/GreenCheckmark";
-import { useParams } from "react-router"; 
-import * as db from "../../Database"; 
+import { useParams } from "react-router";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { deleteAssignment } from "./reducer";
 
 export default function Assignments() {
-  const { cid } = useParams(); 
-  const assignments = db.assignments.filter(assignment => assignment.course === cid); // Filter assignments by course ID
+  const { cid } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
+  const assignments = useSelector((state: any) =>
+    state.assignmentsReducer.assignments.filter((assignment: any) => assignment.course === cid)
+  );
+
+  const handleDelete = (assignmentId: string) => {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
+      dispatch(deleteAssignment(assignmentId));
+    }
+  };
   return (
     <div id="wd-assignments" className="container">
       {/* Assignments Controls */}
@@ -37,7 +49,11 @@ export default function Assignments() {
         </button>
 
         {/* + Assignment Button */}
-        <button id="wd-add-assignment-btn" className="btn btn-danger btn-lg">
+        <button
+          id="wd-add-assignment-btn"
+          className="btn btn-danger btn-lg"
+          onClick={() => navigate(`/Kanbas/Courses/${cid}/Assignments/New`)}
+        >
           <FaPlus className="me-1" /> Assignment
         </button>
       </div>
@@ -60,32 +76,38 @@ export default function Assignments() {
 
         {/* Assignment List */}
         <ul id="wd-assignment-list" className="list-group">
-          {assignments.map((assignment) => (
+          {assignments.map((assignment: any) => (
             <li
               key={assignment._id}
               className="wd-assignment-list-item list-group-item d-flex align-items-start p-3 rounded-0"
               style={{ borderLeft: "5px solid green" }}
             >
               <div className="d-flex align-items-center align-self-center me-3">
-                {/* Centering icons vertically */}
                 <BsGripVertical className="fs-4" />
                 <LuClipboardEdit className="fs-4 ms-2 text-success" /> {/* Green Clipboard Icon */}
               </div>
               <div className="flex-grow-1">
                 <a
                   className="wd-assignment-link fw-bold d-block text-decoration-none text-dark"
-                  href={`#/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}
+                  onClick={() => navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`)}
+                  style={{ cursor: "pointer" }}
                 >
                   {assignment.title}
                 </a>
                 <p className="mb-0 text-muted">
-                  <span className="text-danger">Multiple Modules</span> | <strong>Not available until</strong> May 6 at 12:00am <br />
-                  <strong>Due</strong> May 13 at 11:59pm | 100 pts
+                  <span className="text-danger">Multiple Modules</span> | <strong>Not available until</strong> {assignment.availableFrom} <br />
+                  <strong>Due</strong> {assignment.dueDate} | {assignment.points} pts
                 </p>
               </div>
               <div className="d-flex align-items-center align-self-center">
                 <GreenCheckmark />
+                <FaTrash
+                  className="text-danger ms-3 fs-5"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleDelete(assignment._id)}
+                />
                 <BsThreeDotsVertical className="ms-3 fs-4" />
+
               </div>
             </li>
           ))}
