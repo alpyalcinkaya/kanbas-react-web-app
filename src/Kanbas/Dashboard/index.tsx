@@ -1,14 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { enrollInCourse, unenrollFromCourse } from "./enrollmentReducer";
+import { useSelector } from "react-redux";
 import { FaPlus } from "react-icons/fa";
+import * as courseClient from "../Courses/client"; // Assuming client.ts is imported as courseClient
+import * as enrollmentClient from "./client"
+import * as userClient from "../Account/client"
 
-// Define types for the course structure and for student-specific props
+// Define types for the course structure
 interface Course {
   _id: string;
   name: string;
   description: string;
+}
+
+// Define types for the props the Dashboard component will receive
+interface DashboardProps {
+  courses: Course[];
+  course: Course;
+  setCourse: (course: Course) => void;
+  addNewCourse: () => void;
+  deleteCourse: (courseId: string) => void;
+  updateCourse: () => void;
 }
 
 export default function Dashboard({
@@ -18,37 +30,49 @@ export default function Dashboard({
   addNewCourse,
   deleteCourse,
   updateCourse,
-}: {
-  courses: any[];
-  course: any;
-  setCourse: (course: any) => void;
-  addNewCourse: () => void;
-  deleteCourse: (courseId: string) => void;
-  updateCourse: () => void;
-}) {
-  const dispatch = useDispatch();
-  
+}: DashboardProps) {
   const { currentUser } = useSelector((state: any) => state.accountReducer);
-  const enrollments = useSelector((state: any) => state.enrollmentReducer.enrollments);
-
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
   const [showAllCourses, setShowAllCourses] = useState(true);
 
-  // Filter for enrolled courses for the student view
-  const enrolledCourses = enrollments
-    .filter((enrollment: any) => enrollment.user === currentUser._id)
-    .map((enrollment: any) => enrollment.course);
+  // Fetch enrollments for students
+  const fetchEnrolledCourses = async () => {
+    try {
+      if (currentUser.role === "STUDENT") {
+        const enrolledCourses = await enrollmentClient.findCoursesForUser(currentUser._id);
+        setEnrolledCourses(enrolledCourses.map((enrollment: Course) => enrollment._id));
+      }
+    } catch (error) {
+      console.error("Failed to fetch enrollments:", error);
+    }
+  };
 
+  useEffect(() => {
+    if (currentUser.role === "STUDENT") {
+      fetchEnrolledCourses();
+    }
+  }, [currentUser]);
+
+  // Filter courses based on the student's view preference
   const filteredCourses = showAllCourses
     ? courses
-    : courses.filter((course: Course) => enrolledCourses.includes(course._id));
+    : courses.filter((course) => enrolledCourses.includes(course._id));
 
   // Toggle enrollment for students
-  const handleEnrollmentToggle = (courseId: string) => {
+  const handleEnrollmentToggle = async (courseId: string) => {
     const isEnrolled = enrolledCourses.includes(courseId);
-    if (isEnrolled) {
-      dispatch(unenrollFromCourse({ userId: currentUser._id, courseId }));
-    } else {
-      dispatch(enrollInCourse({ userId: currentUser._id, courseId }));
+    try {
+      if (isEnrolled) {
+        await enrollmentClient.unenrollFromCourse(currentUser._id, courseId);
+        setEnrolledCourses((prevEnrolled) =>
+          prevEnrolled.filter((id) => id !== courseId)
+        );
+      } else {
+        await enrollmentClient.enrollInCourse(currentUser._id, courseId);
+        setEnrolledCourses((prevEnrolled) => [...prevEnrolled, courseId]);
+      }
+    } catch (error) {
+      console.error("Failed to update enrollment:", error);
     }
   };
 
@@ -85,11 +109,13 @@ export default function Dashboard({
           <textarea
             value={course.description}
             className="form-control mb-2"
-            onChange={(e) => setCourse({ ...course, description: e.target.value })}
+            onChange={(e) =>
+              setCourse({ ...course, description: e.target.value })
+            }
           />
           <hr />
           <h2 id="wd-dashboard-published">
-            Published Courses ({filteredCourses.length})
+            Published Courses ({courses.length})
           </h2>
           <hr />
         </>
@@ -112,11 +138,21 @@ export default function Dashboard({
           return (
             <div className="wd-dashboard-course col" key={course._id}>
               <div className="card rounded-3 overflow-hidden">
-                <Link to={`/Kanbas/Courses/${course._id}/Home`} className="text-decoration-none text-dark">
-                  <img src="/images/reactjs.jpg" alt="Course Thumbnail" className="card-img-top" />
+                <Link
+                  to={`/Kanbas/Courses/${course._id}/Home`}
+                  className="text-decoration-none text-dark"
+                >
+                  <img
+                    src="/images/reactjs.jpg"
+                    alt="Course Thumbnail"
+                    className="card-img-top"
+                  />
                   <div className="card-body">
                     <h5 className="card-title">{course.name}</h5>
-                    <p className="card-text" style={{ maxHeight: 100, overflow: "hidden" }}>
+                    <p
+                      className="card-text"
+                      style={{ maxHeight: 100, overflow: "hidden" }}
+                    >
                       {course.description}
                     </p>
                   </div>

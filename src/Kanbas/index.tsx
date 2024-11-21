@@ -24,34 +24,53 @@ export default function Kanbas() {
     endDate: "2023-12-15",
     description: "New Description",
   });
+
+  // Add a new course
   const addNewCourse = async () => {
-    const newCourse = await userClient.createCourse(course);
-    setCourses([...courses, newCourse]);
-  };
-
-  const deleteCourse = async (courseId: string) => {
-    const status = await courseClient.deleteCourse(courseId);
-    setCourses(courses.filter((course) => course._id !== courseId));
-  };
-
-  const updateCourse = async () => {
-    await courseClient.updateCourse(course);
-    setCourses(courses.map((c) => {
-        if (c._id === course._id) { return course; }
-        else { return c; }
-    })
-  );};
-
-  const fetchCourses = async () => {
     try {
-      const courses = await userClient.findMyCourses();
-      setCourses(courses);
+      const newCourse = await userClient.createCourse(course);
+      setCourses(prevCourses => [...prevCourses, newCourse]);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to add course:", error);
     }
   };
+
+  // Delete a course
+  const deleteCourse = async (courseId: string) => {
+    try {
+      await courseClient.deleteCourse(courseId);
+      setCourses(prevCourses => prevCourses.filter((c) => c._id !== courseId));
+    } catch (error) {
+      console.error("Failed to delete course:", error);
+    }
+  };
+
+  // Update a course
+  const updateCourse = async () => {
+    try {
+      await courseClient.updateCourse(course);
+      setCourses(prevCourses =>
+        prevCourses.map((c) => (c._id === course._id ? course : c))
+      );
+    } catch (error) {
+      console.error("Failed to update course:", error);
+    }
+  };
+
+  // Fetch the courses assigned to the logged-in faculty
+  const fetchCourses = async () => {
+    try {
+      const fetchedCourses = await userClient.findMyCourses();
+      setCourses(fetchedCourses);
+    } catch (error) {
+      console.error("Failed to fetch courses:", error);
+    }
+  };
+
   useEffect(() => {
-    fetchCourses();
+    if (currentUser?.role === "FACULTY") {
+      fetchCourses();
+    }
   }, [currentUser]);
 
   return (
@@ -93,3 +112,4 @@ export default function Kanbas() {
     </Session>
   );
 }
+

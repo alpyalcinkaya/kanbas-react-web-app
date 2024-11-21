@@ -30,15 +30,11 @@ export default function Assignments() {
   }, [cid]);
 
   const handleDelete = async (assignmentId: string) => {
-    try {
-      if (window.confirm("Are you sure you want to delete this assignment?")) {
+    if (window.confirm("Are you sure you want to delete this assignment?")) {
       await assignmentClient.deleteAssignment(assignmentId);
-      }
-      // Update local assignments list by filtering out the deleted assignment
       setAssignments(assignments.filter((assignment) => assignment._id !== assignmentId));
-    } catch (error) {
-      console.error("Failed to delete assignment:", error);
-    }
+
+      }
   };
   
   return (
