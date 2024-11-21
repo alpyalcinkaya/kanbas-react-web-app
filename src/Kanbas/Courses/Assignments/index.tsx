@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaPlus, FaTrash, FaChevronDown } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { BsGripVertical, BsThreeDotsVertical } from "react-icons/bs";
@@ -9,20 +9,38 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { deleteAssignment } from "./reducer";
 
+import * as assignmentClient from "./client";
+
 export default function Assignments() {
   const { cid } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const assignments = useSelector((state: any) =>
-    state.assignmentsReducer.assignments.filter((assignment: any) => assignment.course === cid)
-  );
+  const [assignments, setAssignments] = useState<any[]>([]);
 
-  const handleDelete = (assignmentId: string) => {
-    if (window.confirm("Are you sure you want to delete this assignment?")) {
-      dispatch(deleteAssignment(assignmentId));
+  const fetchAssignments = async () => {
+    const assignmentsData = await assignmentClient.findAssignmentsForCourse(cid);
+    setAssignments(assignmentsData);
+  };
+  
+  useEffect(() => {
+    if (cid) {
+      fetchAssignments(); // Fetch assignments when component mounts
+    }
+  }, [cid]);
+
+  const handleDelete = async (assignmentId: string) => {
+    try {
+      if (window.confirm("Are you sure you want to delete this assignment?")) {
+      await assignmentClient.deleteAssignment(assignmentId);
+      }
+      // Update local assignments list by filtering out the deleted assignment
+      setAssignments(assignments.filter((assignment) => assignment._id !== assignmentId));
+    } catch (error) {
+      console.error("Failed to delete assignment:", error);
     }
   };
+  
   return (
     <div id="wd-assignments" className="container">
       {/* Assignments Controls */}
@@ -68,7 +86,9 @@ export default function Assignments() {
           </div>
 
           <div className="d-flex align-items-center">
-            <span className="bg-secondary text-dark border border-dark me-2 p-2 rounded text-muted">40% of Total</span>
+            <span className="bg-secondary text-dark border border-dark me-2 p-2 rounded text-muted">
+              40% of Total
+            </span>
             <FaPlus className="me-2" />
             <BsThreeDotsVertical className="fs-4" />
           </div>
@@ -84,19 +104,27 @@ export default function Assignments() {
             >
               <div className="d-flex align-items-center align-self-center me-3">
                 <BsGripVertical className="fs-4" />
-                <LuClipboardEdit className="fs-4 ms-2 text-success" /> {/* Green Clipboard Icon */}
+                <LuClipboardEdit className="fs-4 ms-2 text-success" />{" "}
+                {/* Green Clipboard Icon */}
               </div>
               <div className="flex-grow-1">
                 <a
                   className="wd-assignment-link fw-bold d-block text-decoration-none text-dark"
-                  onClick={() => navigate(`/Kanbas/Courses/${cid}/Assignments/${assignment._id}`)}
+                  onClick={() =>
+                    navigate(
+                      `/Kanbas/Courses/${cid}/Assignments/${assignment._id}`
+                    )
+                  }
                   style={{ cursor: "pointer" }}
                 >
                   {assignment.title}
                 </a>
                 <p className="mb-0 text-muted">
-                  <span className="text-danger">Multiple Modules</span> | <strong>Not available until</strong> {assignment.availableFrom} <br />
-                  <strong>Due</strong> {assignment.dueDate} | {assignment.points} pts
+                  <span className="text-danger">Multiple Modules</span> |{" "}
+                  <strong>Not available until</strong>{" "}
+                  {assignment.availableFrom} <br />
+                  <strong>Due</strong> {assignment.dueDate} |{" "}
+                  {assignment.points} pts
                 </p>
               </div>
               <div className="d-flex align-items-center align-self-center">
@@ -107,7 +135,6 @@ export default function Assignments() {
                   onClick={() => handleDelete(assignment._id)}
                 />
                 <BsThreeDotsVertical className="ms-3 fs-4" />
-
               </div>
             </li>
           ))}
