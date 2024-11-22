@@ -2,18 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaPlus } from "react-icons/fa";
-import * as courseClient from "../Courses/client"; // Assuming client.ts is imported as courseClient
-import * as enrollmentClient from "./client"
-import * as userClient from "../Account/client"
+import * as courseClient from "../Courses/client";
+import * as enrollmentClient from "./client";
+import * as userClient from "../Account/client";
 
-// Define types for the course structure
 interface Course {
   _id: string;
   name: string;
   description: string;
 }
 
-// Define types for the props the Dashboard component will receive
 interface DashboardProps {
   courses: Course[];
   course: Course;
@@ -34,29 +32,35 @@ export default function Dashboard({
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const [enrolledCourses, setEnrolledCourses] = useState<string[]>([]);
   const [showAllCourses, setShowAllCourses] = useState(true);
+  const [allCourses, setAllCourses] = useState<Course[]>(courses);
 
-  // Fetch enrollments for students
-  const fetchEnrolledCourses = async () => {
+  // Fetch all courses and enrollments for students
+  const fetchData = async () => {
     try {
       if (currentUser.role === "STUDENT") {
-        const enrolledCourses = await enrollmentClient.findCoursesForUser(currentUser._id);
-        setEnrolledCourses(enrolledCourses.map((enrollment: Course) => enrollment._id));
+        // Fetch all available courses
+        const fetchedCourses = await courseClient.fetchAllCourses();
+        setAllCourses(fetchedCourses);
+        
+        // Fetch enrolled courses
+        const enrollments = await enrollmentClient.findCoursesForUser(currentUser._id);
+        setEnrolledCourses(enrollments.map((enrollment: any) => enrollment._id));
       }
     } catch (error) {
-      console.error("Failed to fetch enrollments:", error);
+      console.error("Failed to fetch data:", error);
     }
   };
 
   useEffect(() => {
-    if (currentUser.role === "STUDENT") {
-      fetchEnrolledCourses();
-    }
+    fetchData();
   }, [currentUser]);
 
   // Filter courses based on the student's view preference
-  const filteredCourses = showAllCourses
-    ? courses
-    : courses.filter((course) => enrolledCourses.includes(course._id));
+  const filteredCourses = currentUser.role === "STUDENT" 
+    ? (showAllCourses 
+        ? allCourses 
+        : allCourses.filter((course) => enrolledCourses.includes(course._id)))
+    : courses;
 
   // Toggle enrollment for students
   const handleEnrollmentToggle = async (courseId: string) => {
@@ -80,6 +84,16 @@ export default function Dashboard({
     <div id="wd-dashboard">
       <h1 id="wd-dashboard-title">Dashboard</h1>
       <hr />
+
+      {/* Toggle button for Students */}
+      {currentUser.role === "STUDENT" && (
+        <button
+          className="btn btn-primary mb-3"
+          onClick={() => setShowAllCourses(!showAllCourses)}
+        >
+          {showAllCourses ? "Show Enrolled Courses" : "Show All Courses"}
+        </button>
+      )}
 
       {currentUser.role === "FACULTY" && (
         <>
@@ -119,16 +133,6 @@ export default function Dashboard({
           </h2>
           <hr />
         </>
-      )}
-
-      {/* Toggle between "All Courses" and "Enrolled Courses" for Students */}
-      {currentUser.role === "STUDENT" && (
-        <button
-          className="btn btn-info mb-3"
-          onClick={() => setShowAllCourses((prev) => !prev)}
-        >
-          {showAllCourses ? "Show Enrolled Courses" : "Show All Courses"}
-        </button>
       )}
 
       <div id="wd-dashboard-courses" className="row row-cols-1 row-cols-md-5 g-4">
