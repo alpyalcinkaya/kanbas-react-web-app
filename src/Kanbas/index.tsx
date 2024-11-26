@@ -60,7 +60,7 @@ export default function Kanbas() {
   // Fetch the courses assigned to the logged-in faculty
   const fetchCourses = async () => {
     try {
-      const fetchedCourses = await userClient.findMyCourses();
+      const fetchedCourses = await courseClient.fetchAllCourses();
       setCourses(fetchedCourses);
     } catch (error) {
       console.error("Failed to fetch courses:", error);
