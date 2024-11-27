@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { FaPlus, FaTrash, FaChevronDown } from "react-icons/fa6";
+import { FaPlus, FaChevronDown } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
-import { BsGripVertical, BsThreeDotsVertical } from "react-icons/bs";
-import { LuClipboardEdit } from "react-icons/lu";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { LuRocket } from "react-icons/lu";
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
 import * as quizClient from "./client";
+import GreenCheckmark from "../Modules/GreenCheckmark";
 
 export default function Quizzes() {
   const { cid } = useParams(); // Course ID
   const navigate = useNavigate();
 
   const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [openContextMenuQuizId, setOpenContextMenuQuizId] = useState<string | null>(null); // State for context menu
 
   const fetchQuizzes = async () => {
     const quizzesData = await quizClient.findQuizzesForCourse(cid);
@@ -65,17 +67,8 @@ export default function Quizzes() {
       <div className="card mb-4">
         <div className="card-header d-flex justify-content-between align-items-center bg-secondary rounded-0">
           <div className="d-flex align-items-center">
-            <BsGripVertical className="me-2 fs-4" />
             <FaChevronDown className="me-2 fs-5" />
-            <span className="wd-title p-3 ps-2 strong">QUIZZES</span>
-          </div>
-
-          <div className="d-flex align-items-center">
-            <span className="bg-secondary text-dark border border-dark me-2 p-2 rounded text-muted">
-              40% of Total
-            </span>
-            <FaPlus className="me-2" />
-            <BsThreeDotsVertical className="fs-4" />
+            <span className="wd-title p-3 fw-bold d-block text-decoration-none text-dark">Assignment Quizzes</span>
           </div>
         </div>
 
@@ -84,13 +77,11 @@ export default function Quizzes() {
           {quizzes.map((quiz: any) => (
             <li
               key={quiz._id}
-              className="wd-quiz-list-item list-group-item d-flex align-items-start p-3 rounded-0"
+              className="wd-quiz-list-item list-group-item d-flex align-items-start p-3 rounded-0 position-relative"
               style={{ borderLeft: "5px solid green" }}
             >
               <div className="d-flex align-items-center align-self-center me-3">
-                <BsGripVertical className="fs-4" />
-                <LuClipboardEdit className="fs-4 ms-2 text-success" />{" "}
-                {/* Green Clipboard Icon */}
+                <LuRocket className="fs-4 ms-2 text-success" /> {/* Green Clipboard Icon */}
               </div>
               <div className="flex-grow-1">
                 <a
@@ -109,13 +100,29 @@ export default function Quizzes() {
                   <strong>Due:</strong> {quiz.dueDate} | {quiz.points} pts
                 </p>
               </div>
-              <div className="d-flex align-items-center align-self-center">
-                <FaTrash
-                  className="text-danger ms-3 fs-5"
+              <div className="d-flex align-items-center align-self-center position-relative">
+                <GreenCheckmark />
+                {/* Context Menu Button */}
+                <BsThreeDotsVertical
+                  className="ms-3 fs-4"
+                  onClick={() =>
+                    setOpenContextMenuQuizId(
+                      openContextMenuQuizId === quiz._id ? null : quiz._id
+                    )
+                  }
                   style={{ cursor: "pointer" }}
-                  onClick={() => handleDelete(quiz._id)}
                 />
-                <BsThreeDotsVertical className="ms-3 fs-4" />
+                {/* Context Menu */}
+                {openContextMenuQuizId === quiz._id && (
+                  <ul
+                    className="list-group position-absolute"
+                    style={{ top: '100%', right: 0, zIndex: 1000 }}
+                  >
+                    <li className="list-group-item">Edit</li>
+                    <li className="list-group-item">Delete</li>
+                    <li className="list-group-item">Publish</li>
+                  </ul>
+                )}
               </div>
             </li>
           ))}
