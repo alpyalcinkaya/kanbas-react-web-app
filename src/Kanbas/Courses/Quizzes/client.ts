@@ -31,9 +31,17 @@ export const deleteQuiz = async (quizId: any) => {
   return response.data;
 };
 
-export const findQuizById = async (courseId:any, quizId: any) => {
-  console.log("Client - Fetching Quiz by ID:", quizId);
-  const response = await axios.get(`${COURSES_API}/${courseId}/quizzes/${quizId}`);
+export const findQuizById = async (courseId: any, quizId: any, mode: 'edit' | 'preview' = 'preview') => {
+  console.log("Client - Fetching Quiz by ID:", quizId, "Mode:", mode);
+  
+  // Determine URL based on mode
+  // Base url for going to a specific quiz
+  const baseUrl = `${COURSES_API}/${courseId}/quizzes/${quizId}`;
+
+  // if edit mode then we go to edit page, preview go to preview page
+  const url = mode === 'edit' ? `${baseUrl}/edit` : `${baseUrl}/preview`;
+
+  const response = await axios.get(url);
   console.log("Client - Fetched Quiz Response:", response.data);
   return response.data;
 };

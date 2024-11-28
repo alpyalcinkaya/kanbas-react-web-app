@@ -1,30 +1,45 @@
+// Quizzes.tsx
 import React, { useEffect, useState } from "react";
 import { FaPlus, FaChevronDown } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { LuRocket } from "react-icons/lu";
+import { AiOutlineEyeInvisible } from "react-icons/ai"; // Import icon for unpublished
 import { useParams } from "react-router";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux"; // Import useSelector from Redux
 import * as quizClient from "./client";
 import GreenCheckmark from "../Modules/GreenCheckmark";
+import UnpublishedIcon from "../Modules/UnpublishedIcon"; // Import UnpublishedIcon
 
 export default function Quizzes() {
   const { cid } = useParams(); // Course ID
   const navigate = useNavigate();
+
+  // Access the user's role from Redux store
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const role = currentUser?.role; // Assuming 'role' is 'FACULTY' or 'STUDENT'
 
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [openContextMenuQuizId, setOpenContextMenuQuizId] = useState<string | null>(null); // State for context menu
 
   const fetchQuizzes = async () => {
     const quizzesData = await quizClient.findQuizzesForCourse(cid);
-    setQuizzes(quizzesData);
+
+    // If the user is a student, filter out unpublished quizzes
+    const filteredQuizzes =
+      role === "STUDENT"
+        ? quizzesData.filter((quiz: any) => quiz.published)
+        : quizzesData;
+
+    setQuizzes(filteredQuizzes);
   };
 
   useEffect(() => {
     if (cid) {
-      fetchQuizzes(); // Fetch quizzes when component mounts
+      fetchQuizzes(); // Fetch quizzes when component mounts or role changes
     }
-  }, [cid]);
+  }, [cid, role]);
 
   const handleDelete = async (quizId: string) => {
     if (window.confirm("Are you sure you want to delete this quiz?")) {
@@ -33,13 +48,18 @@ export default function Quizzes() {
     }
   };
 
-  const handleNav = async (quizId: string) => {
-    console.log("Navigating to Quiz Editor");
-    console.log("Course ID:", cid);
-    console.log("Quiz ID:", quizId);
-    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}`);
+  const handlePublishToggle = async (quizId: string) => {
+    // Find the quiz
+    const quiz = quizzes.find((q) => q._id === quizId);
+    if (quiz) {
+      // Toggle published status
+      const updatedQuiz = { ...quiz, published: !quiz.published };
+      // Update on server
+      await quizClient.updateQuiz(updatedQuiz); // Pass only the updated quiz object
+      // Update state
+      setQuizzes(quizzes.map((q) => (q._id === quizId ? updatedQuiz : q)));
+    }
   };
-  
 
   return (
     <div id="wd-quizzes" className="container">
@@ -61,14 +81,16 @@ export default function Quizzes() {
           </div>
         </div>
 
-        {/* + Quiz Button */}
-        <button
-          id="wd-add-quiz-btn"
-          className="btn btn-danger btn-lg"
-          onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New`)}
-        >
-          <FaPlus className="me-1" /> Quiz
-        </button>
+        {/* + Quiz Button (Visible to FACULTY only) */}
+        {role === "FACULTY" && (
+          <button
+            id="wd-add-quiz-btn"
+            className="btn btn-danger btn-lg"
+            onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New`)}
+          >
+            <FaPlus className="me-1" /> Quiz
+          </button>
+        )}
       </div>
 
       {/* Quizzes Header */}
@@ -76,7 +98,9 @@ export default function Quizzes() {
         <div className="card-header d-flex justify-content-between align-items-center bg-secondary rounded-0">
           <div className="d-flex align-items-center">
             <FaChevronDown className="me-2 fs-5" />
-            <span className="wd-title p-3 fw-bold d-block text-decoration-none text-dark">Assignment Quizzes</span>
+            <span className="wd-title p-3 fw-bold d-block text-decoration-none text-dark">
+              Assignment Quizzes
+            </span>
           </div>
         </div>
 
@@ -89,16 +113,13 @@ export default function Quizzes() {
               style={{ borderLeft: "5px solid green" }}
             >
               <div className="d-flex align-items-center align-self-center me-3">
-                <LuRocket className="fs-4 ms-2 text-success" /> {/* Green Clipboard Icon */}
+                <LuRocket className="fs-4 ms-2 text-success" />
               </div>
-
               <div className="flex-grow-1">
                 <a
                   className="wd-quiz-link fw-bold d-block text-decoration-none text-dark"
-                  
                   onClick={() =>
-                    
-                    handleNav(quiz._id)
+                    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`)
                   }
                   style={{ cursor: "pointer" }}
                 >
@@ -110,27 +131,67 @@ export default function Quizzes() {
                 </p>
               </div>
               <div className="d-flex align-items-center align-self-center position-relative">
-                <GreenCheckmark />
-                {/* Context Menu Button */}
-                <BsThreeDotsVertical
-                  className="ms-3 fs-4"
-                  onClick={() =>
-                    setOpenContextMenuQuizId(
-                      openContextMenuQuizId === quiz._id ? null : quiz._id
-                    )
-                  }
-                  style={{ cursor: "pointer" }}
-                />
-                {/* Context Menu */}
-                {openContextMenuQuizId === quiz._id && (
-                  <ul
-                    className="list-group position-absolute"
-                    style={{ top: '100%', right: 0, zIndex: 1000 }}
-                  >
-                    <li className="list-group-item">Edit</li>
-                    <li className="list-group-item">Delete</li>
-                    <li className="list-group-item">Publish</li>
-                  </ul>
+                {/* Conditionally render the symbol for FACULTY only */}
+                {role === "FACULTY" && (
+                  <>
+                    {quiz.published ? (
+                      <GreenCheckmark />
+                    ) : (
+                      <UnpublishedIcon />
+                    )}
+                  </>
+                )}
+
+                {/* Context Menu Button (FACULTY only) */}
+                {role === "FACULTY" && (
+                  <>
+                    <BsThreeDotsVertical
+                      className="ms-3 fs-4"
+                      onClick={() =>
+                        setOpenContextMenuQuizId(
+                          openContextMenuQuizId === quiz._id ? null : quiz._id
+                        )
+                      }
+                      style={{ cursor: "pointer" }}
+                    />
+                    {/* Context Menu */}
+                    {openContextMenuQuizId === quiz._id && (
+                      <ul
+                        className="list-group position-absolute"
+                        style={{ top: "100%", right: 0, zIndex: 1000 }}
+                      >
+                        <li
+                          className="list-group-item"
+                          onClick={() => {
+                            navigate(
+                              `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`
+                            );
+                            setOpenContextMenuQuizId(null); // Close the menu
+                          }}
+                        >
+                          Edit
+                        </li>
+                        <li
+                          className="list-group-item"
+                          onClick={() => {
+                            handleDelete(quiz._id);
+                            setOpenContextMenuQuizId(null); // Close the menu
+                          }}
+                        >
+                          Delete
+                        </li>
+                        <li
+                          className="list-group-item"
+                          onClick={() => {
+                            handlePublishToggle(quiz._id);
+                            setOpenContextMenuQuizId(null); // Close the menu
+                          }}
+                        >
+                          {quiz.published ? "Unpublish" : "Publish"}
+                        </li>
+                      </ul>
+                    )}
+                  </>
                 )}
               </div>
             </li>

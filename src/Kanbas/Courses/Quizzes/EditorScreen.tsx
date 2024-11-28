@@ -52,10 +52,10 @@ export default function QuizEditor() {
   // Fetch quiz data (in edit mode)
   useEffect(() => {
 
-    const fetchAssignment = async () => {
+    const fetchQuiz = async () => {
       if (isEditing && aid || aid === "New") {
         console.log("Fetching quiz data for aid:", aid);
-        const quiz = await quizClient.findQuizById(cid, aid);
+        const quiz = await quizClient.findQuizById(cid, aid, "edit");
         if (quiz) {
           // set state with fetched data if any exists, else is blank as if new
           // if the quiz is set with null values then set to blank/default state
@@ -84,7 +84,7 @@ export default function QuizEditor() {
         }
       }
     };
-    fetchAssignment();
+    fetchQuiz();
   }, [cid, aid]);
 
   const handleSave = async () => {
