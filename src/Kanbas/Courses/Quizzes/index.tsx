@@ -33,6 +33,14 @@ export default function Quizzes() {
     }
   };
 
+  const handleNav = async (quizId: string) => {
+    console.log("Navigating to Quiz Editor");
+    console.log("Course ID:", cid);
+    console.log("Quiz ID:", quizId);
+    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizId}`);
+  };
+  
+
   return (
     <div id="wd-quizzes" className="container">
       {/* Quizzes Controls */}
@@ -83,13 +91,14 @@ export default function Quizzes() {
               <div className="d-flex align-items-center align-self-center me-3">
                 <LuRocket className="fs-4 ms-2 text-success" /> {/* Green Clipboard Icon */}
               </div>
+
               <div className="flex-grow-1">
                 <a
                   className="wd-quiz-link fw-bold d-block text-decoration-none text-dark"
+                  
                   onClick={() =>
-                    navigate(
-                      `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`
-                    )
+                    
+                    handleNav(quiz._id)
                   }
                   style={{ cursor: "pointer" }}
                 >

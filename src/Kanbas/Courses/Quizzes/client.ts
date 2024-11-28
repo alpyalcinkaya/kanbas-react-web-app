@@ -4,7 +4,8 @@ const REMOTE_SERVER = process.env.REACT_APP_REMOTE_SERVER;
 const QUIZZES_API = `${REMOTE_SERVER}/api/quizzes`;
 const COURSES_API = `${REMOTE_SERVER}/api/courses`;
 
-
+const axiosWithCredentials = axios.create({ withCredentials: true
+});
 
 // Create a quiz for a specific course
 export const createQuizForCourse = async (courseId : any, quiz : any) => {
@@ -27,5 +28,12 @@ export const updateQuiz = async (quiz: any) => {
 // Delete a quiz by its ID
 export const deleteQuiz = async (quizId: any) => {
   const response = await axios.delete(`${QUIZZES_API}/${quizId}`);
+  return response.data;
+};
+
+export const findQuizById = async (quizId: any) => {
+  console.log("Client - Fetching Quiz by ID:", quizId);
+  const response = await axios.get(`${QUIZZES_API}/${quizId}`);
+  console.log("Client - Fetched Quiz Response:", response.data);
   return response.data;
 };
