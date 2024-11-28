@@ -35,7 +35,7 @@ export default function QuizEditor() {
   const [untilDate, setUntilDate] = useState("");
   // check box
   const [multipleAttempts, setAttempts] = useState(false);
-  const [numberAttempts, setNumberOfAttempts] = useState("1");
+  const [numberAttempts, setNumberAttempts] = useState(1);
   const [shuffleAnswers, setShuffle] = useState(true);
   const [showCorrectAnswers, setShowAnswer] = useState(false);
   const [oneAtATime, setOneAtATime] = useState(true);
@@ -70,7 +70,7 @@ export default function QuizEditor() {
           setAccessCode(quiz.accessCode || 12346);
 
           setAttempts(quiz.multipleAttempts || false);
-          setNumberOfAttempts(quiz.numberAttempts || "1");
+          setNumberAttempts(quiz.numberAttempts || 1);
           setShuffle(quiz.shuffleAnswers || true);
           setShowAnswer(quiz.showCorrectAnswers || false);
           setOneAtATime(quiz.oneAtATime || true);
@@ -195,7 +195,7 @@ export default function QuizEditor() {
           onChange={(e) => setTimeLimit(e.target.checked)}
           className="me-2"
         />
-        <label htmlFor="wd-time-limit" className="me-3">Time Limit</label>
+        <label htmlFor="wd-time-limit" className="me-3">Time Limit : </label>
         <input
           type="number"
           id="wd-time"
@@ -210,7 +210,7 @@ export default function QuizEditor() {
       </div>
 
       <div className="mb-3 d-flex align-items-center ">
-      <label htmlFor="wd-points mb-2" className="me-2 ">Points</label>
+      <label htmlFor="wd-points mb-2" className="me-2 ">Points : </label>
         <input
           type="number"
           id="wd-points"
@@ -230,7 +230,19 @@ export default function QuizEditor() {
           onChange={(e) => setAttempts(e.target.checked)}
           className="me-2"
         />
-        <label htmlFor="wd-allow-multiple-attempts">Allow Multiple Attempts</label>
+        <label htmlFor="wd-allow-multiple-attempts mb-2" className="me-2 ">Allow Multiple Attempts : </label>
+
+        <input
+          type="number"
+          id="wd-time"
+          value={numberAttempts}
+          onChange={(e) => setNumberAttempts(Number(e.target.value))}
+          disabled={!multipleAttempts}
+          placeholder="Attempts"
+          className="form-control"
+          style={{ width: "80px" }}
+        />
+        <span className="ms-2">Attempts</span>
       </div>
 
       <div className="mb-3 d-flex align-items-center">
