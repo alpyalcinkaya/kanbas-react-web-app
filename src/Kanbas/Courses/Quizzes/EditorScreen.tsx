@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import * as quizClient from "./client";
 import { addQuiz, updateQuiz, deleteQuizAction, setQuizzes } from "./reducer";
-import { scheduler } from "timers/promises";
-import { BiSolidPhoneOutgoing } from "react-icons/bi";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css'; // Import styles for ReactQuill
@@ -31,9 +29,9 @@ export default function QuizEditor() {
   const [description, setDescription] = useState("");
   const [points, setPoints] = useState(100);
   const [time, setTime] = useState(20);
-  const [accesCode, setAccesCode] = useState("");
+  const [accessCode, setAccesCode] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [availableDate, setAvailableFromDate] = useState("");
+  const [availableFrom, setAvailableFrom] = useState("");
   const [untilDate, setUntilDate] = useState("");
   // check box
   const [multipleAttempts, setAttempts] = useState(false);
@@ -57,7 +55,7 @@ export default function QuizEditor() {
     const fetchAssignment = async () => {
       if (isEditing && aid || aid === "New") {
         console.log("Fetching quiz data for aid:", aid);
-        const quiz = await quizClient.findQuizById(aid);
+        const quiz = await quizClient.findQuizById(cid, aid);
         if (quiz) {
           // set state with fetched data if any exists, else is blank as if new
           // if the quiz is set with null values then set to blank/default state
@@ -65,10 +63,10 @@ export default function QuizEditor() {
           setDescription(quiz.description || "");
           setPoints(quiz.points || 100);
           setDueDate(quiz.dueDate || "");
-          setAvailableFromDate(quiz.availableDate || "");
+          setAvailableFrom(quiz.availableFrom || "");
           setUntilDate(quiz.untilDate || "");
           setTimeLimit(quiz.timeLimit || false);
-          setTime(quiz.timeLimit || 20);
+          setTime(quiz.time || 20);
           setAccesCode(quiz.accesCode || "");
 
           setAttempts(quiz.multipleAttempts || false);
@@ -97,11 +95,11 @@ export default function QuizEditor() {
       description,
       points,
       dueDate,
-      availableDate,
+      availableFrom,
       untilDate,
       timeLimit,
       time,
-      accesCode,
+      accessCode,
       multipleAttempts,
       numberAttempts,
       shuffleAnswers,
@@ -183,6 +181,7 @@ export default function QuizEditor() {
           <option value="ASSIGNMENTS">Assignments</option>
           <option value="EXAMS">Exams</option>
           <option value="PROJECT">Project</option>
+          <option value="QUIZZES">Quizzes</option>
         </select>
       </div>
 
@@ -199,6 +198,7 @@ export default function QuizEditor() {
         <label htmlFor="wd-time-limit" className="me-3">Time Limit</label>
         <input
           type="number"
+          id="wd-time"
           value={time}
           onChange={(e) => setTime(Number(e.target.value))}
           disabled={!timeLimit}
@@ -207,6 +207,19 @@ export default function QuizEditor() {
           style={{ width: "80px" }}
         />
         <span className="ms-2">Minutes</span>
+      </div>
+
+      <div className="mb-3 d-flex align-items-center ">
+      <label htmlFor="wd-points mb-2" className="me-2 ">Points</label>
+        <input
+          type="number"
+          id="wd-points"
+          value={points}
+          onChange={(e) => setPoints(Number(e.target.value))}
+          className="me-2"
+          style={{ width: "60px" }}
+        />
+       
       </div>
 
       <div className="mb-3 d-flex align-items-center">
@@ -236,7 +249,7 @@ export default function QuizEditor() {
         <input
           type="text"
           id="wd-access-code"
-          value={accesCode}
+          value={accessCode}
           onChange={(e) => setAccesCode(e.target.value)}
           className="form-control"
           placeholder=""
@@ -280,18 +293,7 @@ export default function QuizEditor() {
 
       <div className="container mt-5">
       <Card className="p-4 mb-4">
-        <Card.Title className="fw-bold mb-4">Assign</Card.Title>
-
-        {/* Assign To Field */}
-        <Form.Group controlId="assignTo" className="mb-3">
-          <Form.Label>Assign to</Form.Label>
-          <Form.Control
-            type="text"
-            value={assignmentGroup}
-            onChange={(e) => setAssignmentGroup(e.target.value)}
-            placeholder="Enter who to assign"
-          />
-        </Form.Group>
+        <Card.Title className="fw-bold mb-4">Assign Dates</Card.Title>
 
         {/* Due Date Field */}
         <Form.Group controlId="dueDate" className="mb-3">
@@ -309,15 +311,15 @@ export default function QuizEditor() {
         {/* Using the form.group here can help put stuff on the same row but on its own column. */}
         <Row> 
           <Col>
-            <Form.Group controlId="availableFrom" className="mb-3">
-              <Form.Label>Available from</Form.Label>
-              <Form.Control
-                type="date"
-                value={availableDate}
-                onChange={(e) => setAvailableFromDate(e.target.value)}
-                placeholder="Select start date"
-              />
-            </Form.Group>
+          <Form.Group controlId="availableFrom" className="mb-3">
+                <Form.Label>Available from</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={availableFrom}
+                  onChange={(e) => setAvailableFrom(e.target.value)}
+                  placeholder="Select start date"
+                />
+              </Form.Group>
           </Col>
           <Col>
             <Form.Group controlId="untilDate" className="mb-3">

@@ -31,9 +31,9 @@ export const deleteQuiz = async (quizId: any) => {
   return response.data;
 };
 
-export const findQuizById = async (quizId: any) => {
+export const findQuizById = async (courseId:any, quizId: any) => {
   console.log("Client - Fetching Quiz by ID:", quizId);
-  const response = await axios.get(`${QUIZZES_API}/${quizId}`);
+  const response = await axios.get(`${COURSES_API}/${courseId}/quizzes/${quizId}`);
   console.log("Client - Fetched Quiz Response:", response.data);
   return response.data;
 };
