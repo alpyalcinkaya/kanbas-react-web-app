@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-
+import React from 'react';
 import * as quizClient from "./client";
 import { addQuiz, updateQuiz, deleteQuizAction, setQuizzes } from "./reducer";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
@@ -23,35 +23,14 @@ export default function DestailsScreen() {
   const quiz = await quizClient.findQuizById(cid, aid, "preview");
   }
     
-  // textual input fields
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [points, setPoints] = useState(100);
-  const [time, setTime] = useState(20);
-  const [accessCode, setAccessCode] = useState(12345);
-  const [dueDate, setDueDate] = useState("");
-  const [availableFrom, setAvailableFrom] = useState("");
-  const [untilDate, setUntilDate] = useState("");
-  // check box
-  const [multipleAttempts, setAttempts] = useState(false);
-  const [numberAttempts, setNumberAttempts] = useState(1);
-  const [shuffleAnswers, setShuffle] = useState(true);
-  const [showCorrectAnswers, setShowAnswer] = useState(false);
-  const [oneAtATime, setOneAtATime] = useState(true);
-  const [webCam, setWebCam] = useState(false);
-  const [lockQuestionsAfterAnswering, setLockQuestions] = useState(false);
-  const [timeLimit, setTimeLimit] = useState(false);
 
-  // drop down 
-  const [assignmentGroup, setAssignmentGroup] = useState("QUIZZES");
-  const [submissionType, setSubmissionType] = useState("ONLINE");
-  const [quizType, setQuizType] = useState("Graded Quiz");
 
  // Quiz state
  const [quiz, setQuiz] = useState<any>({
     title: "",
     description: "",
     points: 100,
+    timeLimit: false,
     time: 20,
     accessCode: 12345,
     dueDate: "",
@@ -64,10 +43,10 @@ export default function DestailsScreen() {
     oneAtATime: true,
     webCam: false,
     lockQuestionsAfterAnswering: false,
-    timeLimit: false,
     assignmentGroup: "QUIZZES",
     submissionType: "ONLINE",
     quizType: "Graded Quiz",
+ 
   });
 
   // Fetch quiz data
@@ -87,10 +66,101 @@ export default function DestailsScreen() {
   }, [cid, aid]);
   return (
 
-    <Button variant="secondary" className="me-3" onClick={() => {navigate(
+
+  
+    <div className="container mt-5" >
+        
+        <div className="text-center mb-4 me-3">
+            
+        <Button variant="secondary" className="me-3">
+        Preview
+        
+        </Button>
+        <Button variant="secondary" className="me-3 " onClick={() => {navigate(
         `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`
-      ); }}>
-        Go to edit
-  </Button>
+             ); }}> Edit </Button>
+        </div>
+        <br /> <br />
+         <h2 className="text-center mb-4">{quiz.title}</h2>
+            
+            
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-quiz-type" className="me-2"><strong>Quiz Type : </strong></label>
+                {quiz.quizType}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-points" className="me-2"><strong>Points : </strong></label>
+                {quiz.points}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-assignment-group" className="me-2"><strong>Assignment Group : </strong></label>
+                {quiz.assignmentGroup}
+            </div>
+            
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-shuffle-answers" className="me-2"><strong>Shuffle Answers : </strong></label>
+                 {quiz.shuffleAnswers ? "Yes" : "No"}
+            </div>
+            
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-time-limit" className="me-2">
+                <strong>Time Limit : </strong></label>
+                 {quiz.timeLimit ? `{quiz.time} minutes` : "No"}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-multiple-attempts" className="me-2">
+                <strong>Multiple Attemps : </strong></label>
+                 {quiz.timeLimit ? `{quiz.multipleAttempts} attempts` : "No"}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-show-answers" className="me-2">
+                <strong>Show Correct Answers Right away : </strong></label>
+                 {quiz.timeLimit ? "Yes" : "No"}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-access-code" className="me-2">
+                <strong>Access Code : </strong></label>
+                 {quiz.accessCode}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-one-question-at-a-time" className="me-2">
+                <strong>One Question At A Time : </strong></label>
+                 {quiz.oneAtATime ? "Yes" : "No"}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-web-cam-required" className="me-2">
+                <strong>Webcam Requied : </strong></label>
+                 {quiz.webCam ? "Yes" : "No"}
+            </div>
+
+            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
+            <label htmlFor="wd-lock-questions-after-answering" className="me-2">
+                <strong>Lock Questions After Answering : </strong></label>
+                 {quiz.lockQuestionsAfterAnswering ? "Yes" : "No"}
+            </div>
+
+
+
+
+
+
+
+</div>
+
+            
+    
+       
+
+
+  
+
+  
   )
 } 
