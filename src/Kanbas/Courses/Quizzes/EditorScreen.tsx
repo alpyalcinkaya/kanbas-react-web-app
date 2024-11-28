@@ -29,7 +29,7 @@ export default function QuizEditor() {
   const [description, setDescription] = useState("");
   const [points, setPoints] = useState(100);
   const [time, setTime] = useState(20);
-  const [accessCode, setAccesCode] = useState("");
+  const [accessCode, setAccessCode] = useState(12345);
   const [dueDate, setDueDate] = useState("");
   const [availableFrom, setAvailableFrom] = useState("");
   const [untilDate, setUntilDate] = useState("");
@@ -67,7 +67,7 @@ export default function QuizEditor() {
           setUntilDate(quiz.untilDate || "");
           setTimeLimit(quiz.timeLimit || false);
           setTime(quiz.time || 20);
-          setAccesCode(quiz.accesCode || "");
+          setAccessCode(quiz.accessCode || 12346);
 
           setAttempts(quiz.multipleAttempts || false);
           setNumberOfAttempts(quiz.numberAttempts || "1");
@@ -250,7 +250,7 @@ export default function QuizEditor() {
           type="text"
           id="wd-access-code"
           value={accessCode}
-          onChange={(e) => setAccesCode(e.target.value)}
+          onChange={(e) => setAccessCode(Number(e.target.value))}
           className="form-control"
           placeholder=""
         />
