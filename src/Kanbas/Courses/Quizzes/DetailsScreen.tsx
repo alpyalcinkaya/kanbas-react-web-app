@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import React from 'react';
 import * as quizClient from "./client";
 import { addQuiz, updateQuiz, deleteQuizAction, setQuizzes } from "./reducer";
-import { Form, Button, Row, Col, Card } from "react-bootstrap";
+import { Form, Button, Row, Col, Card, Table } from "react-bootstrap";
 import ReactQuill from "react-quill";
 import 'react-quill/dist/quill.snow.css'; // Import styles for ReactQuill
 
@@ -64,103 +64,142 @@ export default function DestailsScreen() {
     };
     fetchQuiz();
   }, [cid, aid]);
+
+
+
   return (
-
-
-  
-    <div className="container mt-5" >
-        
-        <div className="text-center mb-4 me-3">
-            
-        <Button variant="secondary" className="me-3">
-        Preview
-        
-        </Button>
-        <Button variant="secondary" className="me-3 " onClick={() => {navigate(
-        `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`
-             ); }}> Edit </Button>
+    <div className="container mt-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h3 className="text-start">{quiz.title}</h3>
+        <div>
+          <Button variant="secondary" className="me-2">
+            Preview
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`)
+            }
+          >
+            Edit
+          </Button>
         </div>
-        <br /> <br />
-         <h2 className="text-center mb-4">{quiz.title}</h2>
-            
-            
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-quiz-type" className="me-2"><strong>Quiz Type : </strong></label>
-                {quiz.quizType}
-            </div>
+      </div>
 
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-points" className="me-2"><strong>Points : </strong></label>
-                {quiz.points}
-            </div>
+      <Card className="p-3">
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Quiz Type:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.quizType}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Points:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.points}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Assignment Group:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.assignmentGroup}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Shuffle Answers:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.shuffleAnswers ? "Yes" : "No"}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Time Limit:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.timeLimit ? `${quiz.time} minutes` : "No"}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Multiple Attempts:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.multipleAttempts ? `${quiz.numberAttempts} attempts` : "No"}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Show Correct Answers:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.showCorrectAnswers ? "Yes" : "No"}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Access Code:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.accessCode}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            One Question at a Time:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.oneAtATime ? "Yes" : "No"}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Webcam Required:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.webCam ? "Yes" : "No"}
+          </Col>
+        </Row>
+        <Row className="align-items-center mb-1">
+          <Col xs={5} className="fw-bold text-end pe-1">
+            Lock Questions After Answering:
+          </Col>
+          <Col xs={7} className="text-start ps-1">
+            {quiz.lockQuestionsAfterAnswering ? "Yes" : "No"}
+          </Col>
+        </Row>
 
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-assignment-group" className="me-2"><strong>Assignment Group : </strong></label>
-                {quiz.assignmentGroup}
-            </div>
-            
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-shuffle-answers" className="me-2"><strong>Shuffle Answers : </strong></label>
-                 {quiz.shuffleAnswers ? "Yes" : "No"}
-            </div>
-            
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-time-limit" className="me-2">
-                <strong>Time Limit : </strong></label>
-                 {quiz.timeLimit ? `{quiz.time} minutes` : "No"}
-            </div>
+         {/* Nested Card/Table for Due Dates */}
+         <Card className="mt-4">
+          <Table bordered hover>
+            <thead>
+              <tr>
+                <th>Due</th>
+                <th>For</th>
+                <th>Available from</th>
+                <th>Until</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{quiz.dueDate ? new Date(quiz.dueDate).toLocaleString() : "-"}</td>
+                <td>Everyone</td>
+                <td>{quiz.availableFrom ? new Date(quiz.availableFrom).toLocaleString() : "-"}</td>
+                <td>{quiz.untilDate ? new Date(quiz.untilDate).toLocaleString() : "-"}</td>
+              </tr>
+            </tbody>
+          </Table>
+        </Card>
+      </Card>
 
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-multiple-attempts" className="me-2">
-                <strong>Multiple Attemps : </strong></label>
-                 {quiz.timeLimit ? `{quiz.multipleAttempts} attempts` : "No"}
-            </div>
-
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-show-answers" className="me-2">
-                <strong>Show Correct Answers Right away : </strong></label>
-                 {quiz.timeLimit ? "Yes" : "No"}
-            </div>
-
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-access-code" className="me-2">
-                <strong>Access Code : </strong></label>
-                 {quiz.accessCode}
-            </div>
-
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-one-question-at-a-time" className="me-2">
-                <strong>One Question At A Time : </strong></label>
-                 {quiz.oneAtATime ? "Yes" : "No"}
-            </div>
-
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-web-cam-required" className="me-2">
-                <strong>Webcam Requied : </strong></label>
-                 {quiz.webCam ? "Yes" : "No"}
-            </div>
-
-            <div className="text-center mb-3 me-3" style ={{margin: '2px'}}>
-            <label htmlFor="wd-lock-questions-after-answering" className="me-2">
-                <strong>Lock Questions After Answering : </strong></label>
-                 {quiz.lockQuestionsAfterAnswering ? "Yes" : "No"}
-            </div>
-
-
-
-
-
-
-
-</div>
-
-            
-    
-       
-
-
-  
-
-  
-  )
-} 
+     
+    </div>
+  );
+}
