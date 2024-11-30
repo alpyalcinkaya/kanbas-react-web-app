@@ -6,24 +6,23 @@ import * as quizClient from "./client";
 import { addQuiz, updateQuiz, deleteQuizAction, setQuizzes } from "./reducer";
 import { Form, Button, Row, Col, Card } from "react-bootstrap";
 import ReactQuill from "react-quill";
-import 'react-quill/dist/quill.snow.css'; // Import styles for ReactQuill
-
+import "react-quill/dist/quill.snow.css"; // Import styles for ReactQuill
 
 export default function QuizEditor() {
   // get quiz ids
   const { cid, aid } = useParams<{ cid: string; aid?: string }>();
-  console.log("QuizEditor Params - cid:", cid, ", aid:", aid);  // Debugging params
+  console.log("QuizEditor Params - cid:", cid, ", aid:", aid); // Debugging params
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   // check if the quiz is being edited currently
   const isEditing = Boolean(aid);
-  
-  console.log("Is Editing:", isEditing);  // Debugging edit mode
+
+  console.log("Is Editing:", isEditing); // Debugging edit mode
 
   // get fields that need to be changed for the quiz.  Use state to manage the input fields
-  
+
   // textual input fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -43,17 +42,15 @@ export default function QuizEditor() {
   const [lockQuestionsAfterAnswering, setLockQuestions] = useState(false);
   const [timeLimit, setTimeLimit] = useState(false);
 
-  // drop down 
+  // drop down
   const [assignmentGroup, setAssignmentGroup] = useState("QUIZZES");
   const [submissionType, setSubmissionType] = useState("ONLINE");
   const [quizType, setQuizType] = useState("Graded Quiz");
 
-
   // Fetch quiz data (in edit mode)
   useEffect(() => {
-
     const fetchQuiz = async () => {
-      if (isEditing && aid || aid === "New") {
+      if ((isEditing && aid) || aid === "New") {
         console.log("Fetching quiz data for aid:", aid);
         const quiz = await quizClient.findQuizById(cid, aid, "edit");
         if (quiz) {
@@ -78,7 +75,7 @@ export default function QuizEditor() {
           setLockQuestions(quiz.lockQuestionsAfterAnswering || false);
 
           setAssignmentGroup(quiz.assignmentGroup || "QUIZZES");
-         
+
           setSubmissionType(quiz.submissionType || "ONLINE");
           setQuizType(quiz.quizType || "Graded Quiz");
         }
@@ -111,7 +108,7 @@ export default function QuizEditor() {
       submissionType,
       quizType,
     };
-  
+
     try {
       if (isEditing) {
         await quizClient.updateQuiz(updatedQuiz);
@@ -121,24 +118,33 @@ export default function QuizEditor() {
         dispatch(addQuiz(newQuiz));
       }
       // Navigate only after successful update or creation
-      navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+      navigate(`/Kanbas/Courses/${cid}/Quizzes/${updatedQuiz._id}/preview`);
     } catch (error) {
       console.error("Error saving quiz:", error);
     }
   };
-  
 
-    // Handle Cancel Button Click
+  // Handle Cancel Button Click
   const handleCancel = () => {
-    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+    // Redirect to the specific quiz details page if editing, else go to the index page
+    if (isEditing) {
+      navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/preview`);
+    } else {
+      navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+    }
   };
 
   return (
     <div id="wd-quizzes-editor" className="container mt-5">
-      <h2 className="text-center mb-4"> {aid === "New" ? "Add New Quiz" : "Edit Quiz"}</h2>
+      <h2 className="text-center mb-4">
+        {" "}
+        {aid === "New" ? "Add New Quiz" : "Edit Quiz"}
+      </h2>
 
       <div className="mb-4">
-        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Quiz Title</label>
+        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+          Quiz Title
+        </label>
         <input
           type="text"
           value={title}
@@ -149,7 +155,9 @@ export default function QuizEditor() {
       </div>
 
       <div className="mb-4">
-        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Quiz Instructions</label>
+        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+          Quiz Instructions
+        </label>
         <ReactQuill
           value={description}
           onChange={setDescription}
@@ -159,7 +167,9 @@ export default function QuizEditor() {
       </div>
 
       <div className="mb-4">
-        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Quiz Type</label>
+        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+          Quiz Type
+        </label>
         <select
           value={quizType}
           onChange={(e) => setQuizType(e.target.value)}
@@ -172,7 +182,9 @@ export default function QuizEditor() {
       </div>
 
       <div className="mb-4">
-        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Assignment Group</label>
+        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+          Assignment Group
+        </label>
         <select
           value={assignmentGroup}
           onChange={(e) => setAssignmentGroup(e.target.value)}
@@ -185,7 +197,9 @@ export default function QuizEditor() {
         </select>
       </div>
 
-      <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Options</label>
+      <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+        Options
+      </label>
 
       <div className="mb-3 d-flex align-items-center">
         <input
@@ -195,7 +209,9 @@ export default function QuizEditor() {
           onChange={(e) => setTimeLimit(e.target.checked)}
           className="me-2"
         />
-        <label htmlFor="wd-time-limit" className="me-3">Time Limit : </label>
+        <label htmlFor="wd-time-limit" className="me-3">
+          Time Limit :{" "}
+        </label>
         <input
           type="number"
           id="wd-time"
@@ -210,7 +226,9 @@ export default function QuizEditor() {
       </div>
 
       <div className="mb-3 d-flex align-items-center ">
-      <label htmlFor="wd-points mb-2" className="me-2 ">Points : </label>
+        <label htmlFor="wd-points mb-2" className="me-2 ">
+          Points :{" "}
+        </label>
         <input
           type="number"
           id="wd-points"
@@ -219,7 +237,6 @@ export default function QuizEditor() {
           className="me-2"
           style={{ width: "60px" }}
         />
-       
       </div>
 
       <div className="mb-3 d-flex align-items-center">
@@ -230,7 +247,9 @@ export default function QuizEditor() {
           onChange={(e) => setAttempts(e.target.checked)}
           className="me-2"
         />
-        <label htmlFor="wd-allow-multiple-attempts mb-2" className="me-2 ">Allow Multiple Attempts : </label>
+        <label htmlFor="wd-allow-multiple-attempts mb-2" className="me-2 ">
+          Allow Multiple Attempts :{" "}
+        </label>
 
         <input
           type="number"
@@ -257,7 +276,9 @@ export default function QuizEditor() {
       </div>
 
       <div className="mb-4">
-        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Access Code</label>
+        <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+          Access Code
+        </label>
         <input
           type="text"
           id="wd-access-code"
@@ -298,32 +319,32 @@ export default function QuizEditor() {
           onChange={(e) => setLockQuestions(e.target.checked)}
           className="me-2 "
         />
-        <label htmlFor="wd-show-correct-answers">Lock Questions After Answering</label>
+        <label htmlFor="wd-show-correct-answers">
+          Lock Questions After Answering
+        </label>
       </div>
 
-
-
       <div className="container mt-5">
-      <Card className="p-4 mb-4">
-        <Card.Title className="fw-bold mb-4">Assign Dates</Card.Title>
+        <Card className="p-4 mb-4">
+          <Card.Title className="fw-bold mb-4">Assign Dates</Card.Title>
 
-        {/* Due Date Field */}
-        <Form.Group controlId="dueDate" className="mb-3">
-          <Form.Label>Due</Form.Label>
-          <Form.Control
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            placeholder="Select due date"
-          />
-        </Form.Group>
+          {/* Due Date Field */}
+          <Form.Group controlId="dueDate" className="mb-3">
+            <Form.Label>Due</Form.Label>
+            <Form.Control
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              placeholder="Select due date"
+            />
+          </Form.Group>
 
-        {/* Available From and Until Fields */}
-        
-        {/* Using the form.group here can help put stuff on the same row but on its own column. */}
-        <Row> 
-          <Col>
-          <Form.Group controlId="availableFrom" className="mb-3">
+          {/* Available From and Until Fields */}
+
+          {/* Using the form.group here can help put stuff on the same row but on its own column. */}
+          <Row>
+            <Col>
+              <Form.Group controlId="availableFrom" className="mb-3">
                 <Form.Label>Available from</Form.Label>
                 <Form.Control
                   type="date"
@@ -332,37 +353,40 @@ export default function QuizEditor() {
                   placeholder="Select start date"
                 />
               </Form.Group>
-          </Col>
-          <Col>
-            <Form.Group controlId="untilDate" className="mb-3">
-              <Form.Label>Until</Form.Label>
-              <Form.Control
-                type="date"
-                value={untilDate}
-                onChange={(e) => setUntilDate(e.target.value)}
-                placeholder="Select end date"
-              />
-            </Form.Group>
-          </Col>
-        </Row>
+            </Col>
+            <Col>
+              <Form.Group controlId="untilDate" className="mb-3">
+                <Form.Label>Until</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={untilDate}
+                  onChange={(e) => setUntilDate(e.target.value)}
+                  placeholder="Select end date"
+                />
+              </Form.Group>
+            </Col>
+          </Row>
 
-        {/* Add Button */}
-        <Button variant="light" className="w-100 text-center border mb-3">
-          + Add
-        </Button>
-
-        {/* Action Buttons */}
-        <div className="text-end">
-          <Button variant="secondary" className="me-3" onClick={() => console.log("Cancel")}>
-            Cancel
+          {/* Add Button */}
+          <Button variant="light" className="w-100 text-center border mb-3">
+            + Add
           </Button>
-          <Button variant="danger" onClick={handleSave}>
-            Save
-          </Button>
-        </div>
-      </Card>
-    </div>
 
+          {/* Action Buttons */}
+          <div className="text-end">
+            <Button
+              variant="secondary"
+              className="me-3"
+              onClick={() => console.log("Cancel")}
+            >
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleSave}>
+              Save
+            </Button>
+          </div>
+        </Card>
+      </div>
 
       <div className="text-end">
         <Button variant="secondary" className="me-3" onClick={handleCancel}>
