@@ -119,7 +119,7 @@ export default function Quizzes() {
                 <a
                   className="wd-quiz-link fw-bold d-block text-decoration-none text-dark"
                   onClick={() =>
-                    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`)
+                    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`)
                   }
                   style={{ cursor: "pointer" }}
                 >
@@ -164,7 +164,7 @@ export default function Quizzes() {
                           className="list-group-item"
                           onClick={() => {
                             navigate(
-                              `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`
+                              `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`
                             );
                             setOpenContextMenuQuizId(null); // Close the menu
                           }}
