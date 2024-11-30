@@ -86,7 +86,7 @@ export default function Quizzes() {
           <button
             id="wd-add-quiz-btn"
             className="btn btn-danger btn-lg"
-            onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New`)}
+            onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New/edit`)}
           >
             <FaPlus className="me-1" /> Quiz
           </button>

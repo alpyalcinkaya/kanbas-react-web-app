@@ -17,8 +17,7 @@ export default function QuizEditor() {
   const dispatch = useDispatch();
 
   // check if the quiz is being edited currently
-  const isEditing = Boolean(aid);
-
+  const isEditing = Boolean(aid && aid !== "New");
   console.log("Is Editing:", isEditing); // Debugging edit mode
 
   // get fields that need to be changed for the quiz.  Use state to manage the input fields
@@ -50,43 +49,46 @@ export default function QuizEditor() {
   // Fetch quiz data (in edit mode)
   useEffect(() => {
     const fetchQuiz = async () => {
-      if ((isEditing && aid) || aid === "New") {
+      if (isEditing) {
         console.log("Fetching quiz data for aid:", aid);
-        const quiz = await quizClient.findQuizById(cid, aid, "edit");
-        if (quiz) {
-          // set state with fetched data if any exists, else is blank as if new
-          // if the quiz is set with null values then set to blank/default state
-          setTitle(quiz.title || "");
-          setDescription(quiz.description || "");
-          setPoints(quiz.points || 100);
-          setDueDate(quiz.dueDate || "");
-          setAvailableFrom(quiz.availableFrom || "");
-          setUntilDate(quiz.untilDate || "");
-          setTimeLimit(quiz.timeLimit || false);
-          setTime(quiz.time || 20);
-          setAccessCode(quiz.accessCode || 12346);
-
-          setAttempts(quiz.multipleAttempts || false);
-          setNumberAttempts(quiz.numberAttempts || 1);
-          setShuffle(quiz.shuffleAnswers || true);
-          setShowAnswer(quiz.showCorrectAnswers || false);
-          setOneAtATime(quiz.oneAtATime || true);
-          setWebCam(quiz.webCam || false);
-          setLockQuestions(quiz.lockQuestionsAfterAnswering || false);
-
-          setAssignmentGroup(quiz.assignmentGroup || "QUIZZES");
-
-          setSubmissionType(quiz.submissionType || "ONLINE");
-          setQuizType(quiz.quizType || "Graded Quiz");
+        try {
+          const quiz = await quizClient.findQuizById(cid, aid, "edit");
+          if (quiz) {
+            setTitle(quiz.title || "");
+            setDescription(quiz.description || "");
+            setPoints(quiz.points || 100);
+            setDueDate(quiz.dueDate || "");
+            setAvailableFrom(quiz.availableFrom || "");
+            setUntilDate(quiz.untilDate || "");
+            setTimeLimit(quiz.timeLimit || false);
+            setTime(quiz.time || 20);
+            setAccessCode(quiz.accessCode || 12346);
+  
+            setAttempts(quiz.multipleAttempts || false);
+            setNumberAttempts(quiz.numberAttempts || 1);
+            setShuffle(quiz.shuffleAnswers || true);
+            setShowAnswer(quiz.showCorrectAnswers || false);
+            setOneAtATime(quiz.oneAtATime || true);
+            setWebCam(quiz.webCam || false);
+            setLockQuestions(quiz.lockQuestionsAfterAnswering || false);
+  
+            setAssignmentGroup(quiz.assignmentGroup || "QUIZZES");
+            setSubmissionType(quiz.submissionType || "ONLINE");
+            setQuizType(quiz.quizType || "Graded Quiz");
+          }
+        } catch (error) {
+          console.error("Error fetching quiz:", error);
         }
       }
     };
+  
     fetchQuiz();
-  }, [cid, aid]);
+  }, [cid, aid, isEditing]);
+  
 
   const handleSave = async () => {
     const updatedQuiz = {
-      _id: isEditing ? aid! : new Date().getTime().toString(),
+      _id: isEditing ? aid! : new Date().getTime().toString(), // Generate new ID for new quizzes
       title,
       course: cid,
       description,
@@ -108,21 +110,27 @@ export default function QuizEditor() {
       submissionType,
       quizType,
     };
-
+  
     try {
+      let newQuizId;
       if (isEditing) {
         await quizClient.updateQuiz(updatedQuiz);
         dispatch(updateQuiz(updatedQuiz));
+        newQuizId = aid; // Use existing ID for editing
       } else {
         const newQuiz = await quizClient.createQuizForCourse(cid!, updatedQuiz);
         dispatch(addQuiz(newQuiz));
+        newQuizId = newQuiz._id; // Fetch ID from backend response
       }
-      // Navigate only after successful update or creation
-      navigate(`/Kanbas/Courses/${cid}/Quizzes/${updatedQuiz._id}/preview`);
+  
+      // Navigate to the new quiz’s preview page after backend confirms success
+      navigate(`/Kanbas/Courses/${cid}/Quizzes/${newQuizId}/preview`);
     } catch (error) {
       console.error("Error saving quiz:", error);
+      alert("Failed to save quiz. Please try again.");
     }
   };
+  
 
   // Handle Cancel Button Click
   const handleCancel = () => {
