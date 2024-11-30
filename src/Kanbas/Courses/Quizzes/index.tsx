@@ -86,7 +86,7 @@ export default function Quizzes() {
           <button
             id="wd-add-quiz-btn"
             className="btn btn-danger btn-lg"
-            onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New`)}
+            onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New/edit`)}
           >
             <FaPlus className="me-1" /> Quiz
           </button>
@@ -119,7 +119,7 @@ export default function Quizzes() {
                 <a
                   className="wd-quiz-link fw-bold d-block text-decoration-none text-dark"
                   onClick={() =>
-                    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`)
+                    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`)
                   }
                   style={{ cursor: "pointer" }}
                 >
