@@ -78,7 +78,7 @@ export default function DestailsScreen() {
           <Button
             variant="secondary"
             onClick={() =>
-              navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`)
+              navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/editor`)
             }
           >
             Edit

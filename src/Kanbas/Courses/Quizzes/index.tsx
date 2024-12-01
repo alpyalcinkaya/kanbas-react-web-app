@@ -1,4 +1,3 @@
-// Quizzes.tsx
 import React, { useEffect, useState } from "react";
 import { FaPlus, FaChevronDown } from "react-icons/fa6";
 import { CiSearch } from "react-icons/ci";
@@ -86,7 +85,34 @@ export default function Quizzes() {
           <button
             id="wd-add-quiz-btn"
             className="btn btn-danger btn-lg"
-            onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/New/edit`)}
+            onClick={() =>
+              navigate(`/Kanbas/Courses/${cid}/Quizzes/New/edit`, {
+                state: {
+                  isNew: true,
+                  initialQuiz: {
+                    title: "",
+                    description: "",
+                    points: 100,
+                    timeLimit: false,
+                    time: 20,
+                    accessCode: 12345,
+                    dueDate: "",
+                    availableFrom: "",
+                    untilDate: "",
+                    multipleAttempts: false,
+                    numberAttempts: 1,
+                    shuffleAnswers: true,
+                    showCorrectAnswers: false,
+                    oneAtATime: true,
+                    webCam: false,
+                    lockQuestionsAfterAnswering: false,
+                    assignmentGroup: "QUIZZES",
+                    submissionType: "ONLINE",
+                    quizType: "Graded Quiz",
+                  },
+                },
+              })
+            }
           >
             <FaPlus className="me-1" /> Quiz
           </button>

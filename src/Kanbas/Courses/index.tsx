@@ -9,8 +9,9 @@ import { FaAlignJustify } from "react-icons/fa";
 
 import { Navigate, Route, Routes, useParams, useLocation } from "react-router";
 import Quizzes from "./Quizzes";
-import QuizEditor from "./Quizzes/EditorScreen";
+import EditorScreen from "./Quizzes/EditorScreen";
 import QuizPreview from "./Quizzes/DetailsScreen";
+import QuizEditor from "./Quizzes/QuizEditor"
 export default function Courses({ courses }: { courses: any[]; }) {
   const { cid } = useParams();
   const course = courses.find((course) => course._id === cid);
@@ -34,9 +35,10 @@ export default function Courses({ courses }: { courses: any[]; }) {
             <Route path="Assignments" element={<Assignments />} />
             <Route path="Assignments/:aid" element={<AssignmentEditor />} />
             <Route path="Quizzes" element={<Quizzes />} />
-            <Route path="Quizzes/:aid/edit" element={<QuizEditor />} />  
-            <Route path="/Kanbas/Courses/:cid/Quizzes/New/edit" element={<QuizEditor />} />
-            <Route path="Quizzes/:aid/preview" element={<QuizPreview />} />  
+            <Route path="Quizzes/:aid/edit" element={<EditorScreen />} />  
+            <Route path="/Kanbas/Courses/:cid/Quizzes/New/edit" element={<EditorScreen />} />
+            <Route path="Quizzes/:aid/preview" element={<QuizPreview />} /> 
+            <Route path="Quizzes/:aid/editor" element={<QuizEditor />} /> 
             <Route path="People" element={<PeopleTable />} />
           </Routes>
         </div>
