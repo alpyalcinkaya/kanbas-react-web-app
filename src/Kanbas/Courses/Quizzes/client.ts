@@ -59,3 +59,18 @@ export const associateQuestionWithQuiz = async (quizId: any, questionId: any) =>
   );
   return response.data;
 };
+
+export const addQuestionToQuiz = async (quizId: any, questionData: any) => {
+  try {
+    console.log("Sending request to add question:", questionData);
+    const response = await axiosInstance.post(
+      `/api/quizzes/${quizId}/questions`,
+      questionData
+    );
+    console.log("Question added successfully:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error in addQuestionToQuiz:", error);
+    throw error;
+  }
+};

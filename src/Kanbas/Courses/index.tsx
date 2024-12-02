@@ -35,7 +35,7 @@ export default function Courses({ courses }: { courses: any[]; }) {
             <Route path="Assignments/:aid" element={<AssignmentEditor />} />
             <Route path="Quizzes" element={<Quizzes />} />
             <Route path="Quizzes/:aid/edit" element={<QuizEditor />} />  
-            <Route path="/Kanbas/Courses/:cid/Quizzes/New/edit" element={<QuizEditor />} />
+            <Route path="Quizzes/New/edit" element={<QuizEditor />} />
             <Route path="Quizzes/:aid/preview" element={<QuizPreview />} />  
             <Route path="People" element={<PeopleTable />} />
           </Routes>
