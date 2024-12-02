@@ -45,3 +45,14 @@ export const findQuizById = async (courseId: any, quizId: any, mode: 'edit' | 'p
   console.log("Client - Fetched Quiz Response:", response.data);
   return response.data;
 };
+
+// Add a new question to a quiz
+export const addQuestionToQuiz = async (quizId: any, questionData: any) => {
+  try {
+    const response = await axios.post(`/api/quizzes/${quizId}/questions`, questionData);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding question to quiz:', error);
+    throw error;
+  }
+};

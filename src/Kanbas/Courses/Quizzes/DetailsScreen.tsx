@@ -25,8 +25,8 @@ export default function DestailsScreen() {
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
     quizId: cid,
-    points: 1,
     title: "",
+    points: 1,
     question: "",
     options: [{ value: ""}],
     answer: [],
@@ -108,7 +108,29 @@ export default function DestailsScreen() {
     setNewQuestion({ ...newQuestion, options: updatedOptions });
   };
 
-
+  const handleSaveQuestion = async () => {
+    try {
+      // Call backend to add the question
+      const savedQuestion = await quizClient.addQuestionToQuiz(cid, newQuestion);
+      setQuestions([...questions, savedQuestion]);
+  
+      // Reset the newQuestion form for the next new question
+      setNewQuestion({ 
+        _id: null,
+        quizId: cid,
+        title: "", 
+        points: 1, 
+        question: "", 
+        options: [{ value: "" }], 
+        answer: [], 
+        type: "Multiple Choice" 
+      });
+    } catch (error) {
+      console.error('Error saving question:', error);
+      alert('Failed to save question.');
+    }
+  };
+  
 
   return (
     <div className="container mt-4">
