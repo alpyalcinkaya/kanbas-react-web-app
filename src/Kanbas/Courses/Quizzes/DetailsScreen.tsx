@@ -326,12 +326,18 @@ export default function DestailsScreen() {
               <option value="Fill in the Blank">Fill in the Blank</option>
             </select>
           </div>
-                        
+
+                       
           {questionType === "Multiple Choice" && (
-            <>
+            <>    
+            <div>
+            <label className="" style={{ fontSize: "1.1rem" }}>
+              Enter your question and multiple possible answer choices, then select the correct answer. <br />
+                </label>   
+            </div>
               <div className="mb-4">
                 <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
-                  Question Title
+                <br /> Question Title
                 </label>
                 <input
                   type="text"
@@ -393,10 +399,16 @@ export default function DestailsScreen() {
           )}
 
           {questionType === "True/False" && (
+            
             <>
+            <div>
+            <label className="" style={{ fontSize: "1.1rem" }}>
+              Enter your question and multiple possible answer choices, then select the correct answer. <br />
+                </label>   
+            </div>
               <div className="mb-4">
                 <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
-                  Question Title
+                <br />  Question Title
                 </label>
                 <input
                   type="text"
@@ -459,9 +471,15 @@ export default function DestailsScreen() {
 
 {questionType === "Fill in the Blank" && (
             <>
+            <div>
+            <label className="" style={{ fontSize: "1.1rem" }}>
+              Enter your question and multiple possible answer choices, then select the correct answer(s). <br />
+                </label>   
+            </div>
+
               <div className="mb-4">
                 <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
-                  Question Title
+                <br />  Question Title
                 </label>
                 <input
                   type="text"
@@ -522,7 +540,7 @@ export default function DestailsScreen() {
           <Button variant="danger"  onClick={handleSaveQuestion}>
             Save Question
           </Button>
-          
+
           
           </div> 
 
