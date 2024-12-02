@@ -5,7 +5,7 @@ import React from 'react';
 import * as quizClient from "./client";
 import { Button, Row, Col, Card, Table, Tabs, Tab, ListGroup } from "react-bootstrap";
 import 'react-quill/dist/quill.snow.css'; // Import styles for ReactQuill
-
+import ReactQuill from "react-quill";
 
 
 export default function DestailsScreen() {
@@ -93,13 +93,13 @@ export default function DestailsScreen() {
     setNewQuestion({ ...newQuestion, options: updatedOptions });
   };
 
-  const handleOptionChange = (index: number, value: string) => {
-    const updatedOptions = newQuestion.options.map((option, i) =>
-      i === index ? { ...option, value } : option
+ 
+  const handleChoiceChange = (index: number, value: string) => {
+    const updatedChoices = newQuestion.options.map((choice, i) =>
+      i === index ? { ...choice, value } : choice
     );
-    setNewQuestion({ ...newQuestion, options: updatedOptions });
+    setNewQuestion({ ...newQuestion, options: updatedChoices });
   };
-
   const handleCorrectChoiceChange = (index: number) => {
     const updatedOptions = newQuestion.options.map((option, i) => ({
       ...option,
@@ -125,12 +125,26 @@ export default function DestailsScreen() {
         answer: [], 
         type: "Multiple Choice" 
       });
+
+      
     } catch (error) {
       console.error('Error saving question:', error);
       alert('Failed to save question.');
     }
   };
-  
+  const handleCancelQuestion = () => {
+    // Reset new question fields
+    setNewQuestion({
+      _id: null,
+      quizId: cid,
+      title: "",
+      points: 1,
+      question: "",
+      options: [{ value: "" }],
+      answer: [],
+      type: "Multiple Choice",
+    });
+  };
 
   return (
     <div className="container mt-4">
@@ -300,35 +314,107 @@ export default function DestailsScreen() {
 
   
         <Tab eventKey="questions" title="Questions">
-          {/* Questions Content */}
-          <Card className="p-3">
-            <Button
-              variant="primary"
-              onClick={() =>
-                navigate(
-                  `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/questions`
-                )
-              }
+          <div className="mb-4">
+            <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+              Question Type
+            </label>
+            <select
+              value={questionType}
+              onChange={(e) => setQuestionType(e.target.value)}
+              className="form-select mb-3"
             >
-              Edit Questions
-            </Button>
-  
-            {/* Display list of questions if available */}
-            {quiz.questions && quiz.questions.length > 0 ? (
-              <ListGroup className="mt-3">
-                {quiz.questions.map((question : any, index : any) => (
-                  <ListGroup.Item key={index}>
-                    <strong>Question {index + 1}:</strong> {question.text}
-                  </ListGroup.Item>
+              <option value="Multiple Choice">Multiple Choice</option>
+              <option value="True/False">True/False</option>
+              <option value="Fill in the Blank">Fill in the Blank</option>
+            </select>
+          </div>
+
+          {questionType === "Multiple Choice" && (
+            <>
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Title
+                </label>
+                <input
+                  type="text"
+                  value={newQuestion.title}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, title: e.target.value })}
+                  className="form-control"
+                  placeholder="Enter question title"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Points
+                </label>
+                <input
+                  type="number"
+                  value={newQuestion.points}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, points: Number(e.target.value) })}
+                  className="form-control"
+                  placeholder="Enter points"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Text
+                </label>
+                <ReactQuill
+                  value={newQuestion.question}
+                  onChange={(value) => setNewQuestion({ ...newQuestion, question: value })}
+                  placeholder="Write question here..."
+                  className="quill-editor"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Choices</label>
+                {newQuestion.options.map((choice, index) => (
+                  <div key={index} className="d-flex align-items-center mb-2">
+                    <input
+                      type="radio"
+                      name="correctChoice"
+                      onChange={() => handleCorrectChoiceChange(index)}
+                      className="me-2"
+                    />
+                    <input
+                      type="text"
+                      value={choice.value}
+                      onChange={(e) => handleChoiceChange(index, e.target.value)}
+                      className="form-control me-2"
+                      placeholder={`Choice ${index + 1}`}
+                    />
+                    <Button variant="danger" onClick={() => handleRemoveChoice(index)}>-</Button>
+                  </div>
                 ))}
-              </ListGroup>
-            ) : (
-              <p className="mt-3">No questions added yet.</p>
-            )}
-          </Card>
+                <Button variant="primary" onClick={handleAddChoice}>+ Add Choice</Button>
+              </div>
+            </>
+          )}
+
+
+        
+<div className="text-end">
+            <Button variant="secondary" className="me-3" onClick={handleCancelQuestion}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleSaveQuestion}>
+              Save Question
+            </Button>
+          </div>
         </Tab>
       </Tabs>
+
+      {/* <div className="text-end">
+        <Button variant="secondary" className="me-3" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={handleSave}>
+          Save
+        </Button>
+      </div> */}
     </div>
   );
-  
 }
