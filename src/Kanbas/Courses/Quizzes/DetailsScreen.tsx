@@ -10,21 +10,19 @@ import ReactQuill from "react-quill";
 
 export default function DestailsScreen() {
 
-     // get quiz ids
-  const { cid, aid } = useParams<{ cid: string; aid?: string }>();
-  console.log("QuizEditor Params - cid:", cid, ", aid:", aid);  // Debugging params
+  
+  const { cid, aid } = useParams<{ cid: any; aid: any }>();
+  console.log("QuizEditor Params - courseId:", cid, ", quizId:", aid);  // Debugging params
+  
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  const fetchQuiz = async () => {
-  const quiz = await quizClient.findQuizById(cid, aid, "preview");
-  }
     
   const [questions, setQuestions] = useState<any[]>([]);
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
-    quizId: cid,
+    quizId: aid,
     title: "",
     points: 1,
     question: "",
@@ -56,6 +54,7 @@ export default function DestailsScreen() {
     assignmentGroup: "QUIZZES",
     submissionType: "ONLINE",
     quizType: "Graded Quiz",
+    questions: []
  
   });
 
@@ -71,13 +70,13 @@ export default function DestailsScreen() {
 
         if (fetchedQuiz) {
           // Update state with fetched data
+          console.log(fetchedQuiz);
           setQuiz(fetchedQuiz);
         }
       }
     };
     fetchQuiz();
   }, [cid, aid]);
-
 
 
 
@@ -111,7 +110,7 @@ export default function DestailsScreen() {
   const handleSaveQuestion = async () => {
     try {
       // Call backend to add the question
-      const savedQuestion = await quizClient.addQuestionToQuiz(cid, newQuestion);
+      const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
       setQuestions([...questions, savedQuestion]);
   
       // Reset the newQuestion form for the next new question
@@ -132,6 +131,8 @@ export default function DestailsScreen() {
       alert('Failed to save question.');
     }
   };
+
+  
   const handleCancelQuestion = () => {
     // Reset new question fields
     setNewQuestion({
@@ -263,6 +264,15 @@ export default function DestailsScreen() {
               {quiz.lockQuestionsAfterAnswering ? "Yes" : "No"}
             </Col>
           </Row>
+
+          <Row className="align-items-center mb-1">
+            <Col xs={5} className="fw-bold text-end pe-1">
+             Number of Questions :
+            </Col>
+            <Col xs={7} className="text-start ps-1">
+              {quiz.questions.length }
+            </Col>
+          </Row>
   
             {/* Nested Card/Table for Due Dates */}
             <Card className="mt-4">
@@ -300,18 +310,6 @@ export default function DestailsScreen() {
           </Card>
         </Tab>
   
-
-
-
-
-
-
-
-
-
-
-
-
   
         <Tab eventKey="questions" title="Questions">
           <div className="mb-4">
@@ -328,7 +326,7 @@ export default function DestailsScreen() {
               <option value="Fill in the Blank">Fill in the Blank</option>
             </select>
           </div>
-
+                        
           {questionType === "Multiple Choice" && (
             <>
               <div className="mb-4">
@@ -394,6 +392,142 @@ export default function DestailsScreen() {
             </>
           )}
 
+          {questionType === "True/False" && (
+            <>
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Title
+                </label>
+                <input
+                  type="text"
+                  value={newQuestion.title}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, title: e.target.value })}
+                  className="form-control"
+                  placeholder="Enter question title"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Points
+                </label>
+                <input
+                  type="number"
+                  value={newQuestion.points}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, points: Number(e.target.value) })}
+                  className="form-control"
+                  placeholder="Enter points"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Text
+                </label>
+                <ReactQuill
+                  value={newQuestion.question}
+                  onChange={(value) => setNewQuestion({ ...newQuestion, question: value })}
+                  placeholder="Write question here..."
+                  className="quill-editor"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Choices</label>
+                {newQuestion.options.map((choice, index) => (
+                  <div key={index} className="d-flex align-items-center mb-2">
+                    <input
+                      type="radio"
+                      name="correctChoice"
+                      onChange={() => handleCorrectChoiceChange(index)}
+                      className="me-2"
+                    />
+                    <input
+                      type="text"
+                      value={choice.value}
+                      onChange={(e) => handleChoiceChange(index, e.target.value)}
+                      className="form-control me-2"
+                      placeholder={`Choice ${index + 1}`}
+                    />
+                    <Button variant="danger" onClick={() => handleRemoveChoice(index)}>-</Button>
+                  </div>
+                ))}
+                <Button variant="primary" onClick={handleAddChoice}>+ Add Choice</Button>
+              </div>
+            </>
+          )}
+
+{questionType === "Fill in the Blank" && (
+            <>
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Title
+                </label>
+                <input
+                  type="text"
+                  value={newQuestion.title}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, title: e.target.value })}
+                  className="form-control"
+                  placeholder="Enter question title"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Points
+                </label>
+                <input
+                  type="number"
+                  value={newQuestion.points}
+                  onChange={(e) => setNewQuestion({ ...newQuestion, points: Number(e.target.value) })}
+                  className="form-control"
+                  placeholder="Enter points"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+                  Question Text
+                </label>
+                <ReactQuill
+                  value={newQuestion.question}
+                  onChange={(value) => setNewQuestion({ ...newQuestion, question: value })}
+                  placeholder="Write question here..."
+                  className="quill-editor"
+                />
+              </div>
+
+             
+        <div className="mb-4">
+          <label className="fw-bold" style={{ fontSize: "1.1rem" }}>Possible Answers</label>
+          {newQuestion.options.map((option, index) => (
+            <div key={index} className="d-flex align-items-center mb-2">
+              <input
+                type="text"
+                value={option.value}
+                onChange={(e) => handleChoiceChange(index, e.target.value)}
+                className="form-cntrol me-2"
+                placeholder={`Possible Answer ${index + 1}`} />
+
+                <Button variant="danger" onClick={() => handleRemoveChoice(index)}> - </Button>
+                </div>
+          ))}
+          <Button variant="primary" onClick={handleAddChoice}> + Add Another Answer </Button>
+          </div>
+
+       <div className="text-end">
+          <Button variant="secondary" className="me-3" onClick={handleCancelQuestion}>
+          Cancel </Button>
+
+          <Button variant="danger"  onClick={handleSaveQuestion}>
+            Save Question
+          </Button>
+          
+          
+          </div> 
+
+      </>
+    )}
 
         
 <div className="text-end">

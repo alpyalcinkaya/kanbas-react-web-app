@@ -1,58 +1,76 @@
+// client.ts
 import axios from "axios";
 
 const REMOTE_SERVER = process.env.REACT_APP_REMOTE_SERVER;
 const QUIZZES_API = `${REMOTE_SERVER}/api/quizzes`;
 const COURSES_API = `${REMOTE_SERVER}/api/courses`;
 
-const axiosWithCredentials = axios.create({ withCredentials: true
+const axiosInstance = axios.create({
+  baseURL: REMOTE_SERVER,
+  withCredentials: true,
 });
 
 // Create a quiz for a specific course
-export const createQuizForCourse = async (courseId : any, quiz : any) => {
-  const response = await axios.post(`${COURSES_API}/${courseId}/quizzes`, quiz);
+export const createQuizForCourse = async (courseId: any, quiz: any) => {
+  const response = await axiosInstance.post(`${COURSES_API}/${courseId}/quizzes`, quiz);
   return response.data;
 };
 
 // Retrieve all quizzes for a specific course
 export const findQuizzesForCourse = async (courseId: any) => {
-  const response = await axios.get(`${COURSES_API}/${courseId}/quizzes`);
+  const response = await axiosInstance.get(`${COURSES_API}/${courseId}/quizzes`);
   return response.data;
 };
 
 // Update an existing quiz
 export const updateQuiz = async (quiz: any) => {
-  const response = await axios.put(`${QUIZZES_API}/${quiz._id}`, quiz);
+  const response = await axiosInstance.put(`${QUIZZES_API}/${quiz._id}`, quiz);
   return response.data;
 };
 
 // Delete a quiz by its ID
 export const deleteQuiz = async (quizId: any) => {
-  const response = await axios.delete(`${QUIZZES_API}/${quizId}`);
+  const response = await axiosInstance.delete(`${QUIZZES_API}/${quizId}`);
   return response.data;
 };
 
-export const findQuizById = async (courseId: any, quizId: any, mode: 'edit' | 'preview' = 'preview') => {
-  console.log("Client - Fetching Quiz by ID:", quizId, "Mode:", mode);
-  
-  // Determine URL based on mode
-  // Base url for going to a specific quiz
+// Find a quiz by ID
+export const findQuizById = async (
+  courseId: any,
+  quizId: any,
+  mode: "edit" | "preview" = "preview"
+) => {
   const baseUrl = `${COURSES_API}/${courseId}/quizzes/${quizId}`;
-
-  // if edit mode then we go to edit page, preview go to preview page
-  const url = mode === 'edit' ? `${baseUrl}/edit` : `${baseUrl}/preview`;
-
-  const response = await axios.get(url);
-  console.log("Client - Fetched Quiz Response:", response.data);
+  const url = mode === "edit" ? `${baseUrl}/edit` : `${baseUrl}/preview`;
+  const response = await axiosInstance.get(url);
   return response.data;
 };
 
-// Add a new question to a quiz
+// Create a new question
+export const createQuestion = async (questionData: any) => {
+  const response = await axiosInstance.post(`/api/questions`, questionData);
+  return response.data;
+};
+
+// Associate a question with a quiz
+export const associateQuestionWithQuiz = async (quizId: any, questionId: any) => {
+  const response = await axiosInstance.post(
+    `/api/quizzes/${quizId}/questions/${questionId}`
+  );
+  return response.data;
+};
+
 export const addQuestionToQuiz = async (quizId: any, questionData: any) => {
   try {
-    const response = await axios.post(`/api/quizzes/${quizId}/questions`, questionData);
+    console.log("Sending request to add question:", questionData);
+    const response = await axiosInstance.post(
+      `/api/quizzes/${quizId}/questions`,
+      questionData
+    );
+    console.log("Question added successfully:", response.data);
     return response.data;
-  } catch (error) {
-    console.error('Error adding question to quiz:', error);
+  } catch (error: any) {
+    console.error("Error in addQuestionToQuiz:", error);
     throw error;
   }
 };
