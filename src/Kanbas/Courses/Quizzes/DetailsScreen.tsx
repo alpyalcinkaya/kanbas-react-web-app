@@ -72,6 +72,7 @@ export default function DestailsScreen() {
           // Update state with fetched data
           console.log(fetchedQuiz);
           setQuiz(fetchedQuiz);
+          setQuestions(fetchedQuiz.questions || []); // updates questions list
         }
       }
     };
@@ -111,6 +112,7 @@ export default function DestailsScreen() {
     try {
       // Call backend to add the question
       const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
+      console.log("Testing saved questiON", savedQuestion);
       setQuestions([...questions, savedQuestion]);
   
       // Reset the newQuestion form for the next new question
@@ -309,9 +311,35 @@ export default function DestailsScreen() {
             </Card>
           </Card>
         </Tab>
-  
-  
-        <Tab eventKey="questions" title="Questions">
+
+                    {/* List of quizzes questions */}
+        <Tab eventKey="questions-list" title="Questions List">
+          
+          {questions.length > 0 ? (
+            <div className="question-list">
+              {questions.map((question, index) => (
+                <Card key={index} className="mb-3">
+                  <Card.Body>
+                    <Card.Title>{question.title}</Card.Title>
+                    <Card.Text>Points: {question.points}</Card.Text>
+                    <Button
+                      variant="secondary"
+                      onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/questions/${question._id}/edit`)}
+                    >
+                      Edit Question
+                    </Button>
+                  </Card.Body>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p>No questions added yet.</p>
+          )}
+        </Tab>
+
+            {/* Editor for quiz questions */}
+        <Tab eventKey="questions" title="Questions Editor">
+         
           <div className="mb-4">
             <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
               Question Type
