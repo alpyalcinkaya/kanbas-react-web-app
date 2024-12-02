@@ -26,8 +26,9 @@ export default function DestailsScreen() {
     _id: null,
     quizId: cid,
     points: 1,
+    title: "",
     question: "",
-    options: [{ value: "", isCorrect: false }],
+    options: [{ value: ""}],
     answer: [],
     type: "Multiple Choice",
   });
@@ -83,7 +84,7 @@ export default function DestailsScreen() {
   const handleAddChoice = () => {
     setNewQuestion({
       ...newQuestion,
-      options: [...newQuestion.options, { value: "", isCorrect: false }],
+      options: [...newQuestion.options, { value: "" }],
     });
   };
 
@@ -107,11 +108,8 @@ export default function DestailsScreen() {
     setNewQuestion({ ...newQuestion, options: updatedOptions });
   };
 
-  const handleSaveQuestion = () => {
-    const correctAnswers = newQuestion.options.filter((option) => option.isCorrect).map(option => ({ value: option.value }));
-    setQuestions([...questions, { ...newQuestion, answer: correctAnswers }]);
-    setNewQuestion({ _id: null, quizId: cid, points: 1, question: "", options: [{ value: "", isCorrect: false }], answer: [], type: "Multiple Choice" });
-  };
+
+
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
