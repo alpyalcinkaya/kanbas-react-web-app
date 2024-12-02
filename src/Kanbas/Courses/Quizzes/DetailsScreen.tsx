@@ -22,7 +22,7 @@ export default function DestailsScreen() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
-    quizId: cid,
+    quizId: aid,
     title: "",
     points: 1,
     question: "",
@@ -109,7 +109,7 @@ export default function DestailsScreen() {
   const handleSaveQuestion = async () => {
     try {
       // Call backend to add the question
-      const savedQuestion = await quizClient.addQuestionToQuiz(cid, newQuestion);
+      const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
       setQuestions([...questions, savedQuestion]);
   
       // Reset the newQuestion form for the next new question
