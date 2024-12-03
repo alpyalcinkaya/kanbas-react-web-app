@@ -7,7 +7,6 @@ import { Button, Row, Col, Card, Table, Tabs, Tab, ListGroup } from "react-boots
 import 'react-quill/dist/quill.snow.css'; // Import styles for ReactQuill
 import ReactQuill from "react-quill";
 
-
 export default function DestailsScreen() {
 
   
@@ -18,7 +17,8 @@ export default function DestailsScreen() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-    
+  const [editingQuestion, setEditingQuestion] = useState<any>(null); // Holds the question being edited
+  
   const [questions, setQuestions] = useState<any[]>([]);
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
@@ -32,6 +32,11 @@ export default function DestailsScreen() {
   });
   const [questionType, setQuestionType] = useState("Multiple Choice");
 
+
+  const handleQuestionTypeChange = (newType: any) => {
+    setQuestionType(newType);
+    setNewQuestion({...newQuestion, type: newType});
+  }
 
  // Quiz state
  const [quiz, setQuiz] = useState<any>({
@@ -62,23 +67,50 @@ export default function DestailsScreen() {
   const [key, setKey] = useState<string>('details');
 
   // Fetch quiz data
-  useEffect(() => {
-    const fetchQuiz = async () => {
+  // useEffect(() => {
+  //   const fetchQuiz = async () => {
+  //     if (aid) {
+  //       console.log("Fetching quiz data for aid:", aid);
+  //       const fetchedQuiz = await quizClient.findQuizById(cid, aid, "preview");
+        
+  //       if (fetchedQuiz) {
+  //         // Update state with fetched data
+  //         console.log(fetchedQuiz);
+  //         setQuiz(fetchedQuiz);
+  //          // updates questions list
+  //       }
+  //     }
+  //   };
+  //   fetchQuiz();
+  // }, [cid, aid]);
+
+// Fetch quiz data
+useEffect(() => {
+  const fetchQuiz = async () => {
+    try {
       if (aid) {
         console.log("Fetching quiz data for aid:", aid);
         const fetchedQuiz = await quizClient.findQuizById(cid, aid, "preview");
-
+        
         if (fetchedQuiz) {
           // Update state with fetched data
-          console.log(fetchedQuiz);
+          console.log("Quiz fetched successfully:", fetchedQuiz);
           setQuiz(fetchedQuiz);
-          setQuestions(fetchedQuiz.questions || []); // updates questions list
+          setQuestions(fetchedQuiz.questions || []);
+          console.log("Attempting to fetch db questions");
+          // Fetch questions after fetching the quiz
+          const fetchedQuestions = await quizClient.findQuestionsByQuizId(aid);
+          console.log("Questions fetched ", fetchedQuestions);
+          setQuestions(fetchedQuestions || []); // updates questions list
+          console.log("Questions fetched successfully:", fetchedQuestions);
         }
       }
-    };
-    fetchQuiz();
-  }, [cid, aid]);
-
+    } catch (error) {
+      console.error("Error fetching quiz or questions:", error);
+    }
+  };
+  fetchQuiz();
+}, [cid, aid]);
 
 
   const handleAddChoice = () => {
@@ -110,9 +142,12 @@ export default function DestailsScreen() {
 
   const handleSaveQuestion = async () => {
     try {
+
+      const questionToSave = { ...newQuestion, type: questionType };
+
       // Call backend to add the question
-      const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
-      console.log("Testing saved questiON", savedQuestion);
+      const savedQuestion = await quizClient.addQuestionToQuiz(aid, questionToSave);
+      console.log("Testing saved question", savedQuestion);
       setQuestions([...questions, savedQuestion]);
   
       // Reset the newQuestion form for the next new question
@@ -124,7 +159,7 @@ export default function DestailsScreen() {
         question: "", 
         options: [{ value: "" }], 
         answer: [], 
-        type: "Multiple Choice" 
+        type: "" 
       });
 
       
@@ -272,7 +307,7 @@ export default function DestailsScreen() {
              Number of Questions :
             </Col>
             <Col xs={7} className="text-start ps-1">
-              {quiz.questions.length }
+              {questions.length}
             </Col>
           </Row>
   
@@ -312,30 +347,7 @@ export default function DestailsScreen() {
           </Card>
         </Tab>
 
-                    {/* List of quizzes questions */}
-        <Tab eventKey="questions-list" title="Questions List">
-          
-          {questions.length > 0 ? (
-            <div className="question-list">
-              {questions.map((question, index) => (
-                <Card key={index} className="mb-3">
-                  <Card.Body>
-                    <Card.Title>{question.title}</Card.Title>
-                    <Card.Text>Points: {question.points}</Card.Text>
-                    <Button
-                      variant="secondary"
-                      onClick={() => navigate(`/Kanbas/Courses/${cid}/Quizzes/${aid}/questions/${question._id}/edit`)}
-                    >
-                      Edit Question
-                    </Button>
-                  </Card.Body>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p>No questions added yet.</p>
-          )}
-        </Tab>
+       
 
             {/* Editor for quiz questions */}
         <Tab eventKey="questions" title="Questions Editor">
@@ -561,16 +573,7 @@ export default function DestailsScreen() {
           <Button variant="primary" onClick={handleAddChoice}> + Add Another Answer </Button>
           </div>
 
-       <div className="text-end">
-          <Button variant="secondary" className="me-3" onClick={handleCancelQuestion}>
-          Cancel </Button>
-
-          <Button variant="danger"  onClick={handleSaveQuestion}>
-            Save Question
-          </Button>
-
-          
-          </div> 
+       
 
       </>
     )}
@@ -584,6 +587,32 @@ export default function DestailsScreen() {
               Save Question
             </Button>
           </div>
+        </Tab>
+
+                     {/* List of quizzes questions */}
+                     <Tab eventKey="questions-list" title="Questions List">
+          
+          {questions.length > 0 ? (
+            <div className="question-list">
+              {questions.map((question, index) => (
+                <Card key={index} className="mb-3">
+                  <Card.Body>
+                    <Card.Title>{question.title}</Card.Title>
+                    <Card.Text>Points: {question.points}</Card.Text>
+                    <Card.Text>Type: {question.type}</Card.Text>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setEditingQuestion(question)}
+                    >
+                      Edit Question
+                    </Button>
+                  </Card.Body>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p>No questions added yet.</p>
+          )}
         </Tab>
       </Tabs>
 

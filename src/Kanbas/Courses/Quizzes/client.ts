@@ -22,6 +22,19 @@ export const findQuizzesForCourse = async (courseId: any) => {
   return response.data;
 };
 
+// Fetch questions by quiz ID
+export const findQuestionsByQuizId = async (quizId: any) => {
+  try {
+    console.log("Attempting to find questions for the quiz.");
+    const response = await axiosInstance.get(`${QUIZZES_API}/${quizId}/questions`);
+    console.log("findQuestionsByQuizId response: ", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching questions 1 :", error);
+    throw error;
+  }
+};
+
 // Update an existing quiz
 export const updateQuiz = async (quiz: any) => {
   const response = await axiosInstance.put(`${QUIZZES_API}/${quiz._id}`, quiz);
@@ -74,3 +87,5 @@ export const addQuestionToQuiz = async (quizId: any, questionData: any) => {
     throw error;
   }
 };
+
+
