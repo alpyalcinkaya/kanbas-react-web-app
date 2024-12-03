@@ -65,25 +65,7 @@ export default function DestailsScreen() {
 
   // Active tab state
   const [key, setKey] = useState<string>('details');
-
-  // Fetch quiz data
-  // useEffect(() => {
-  //   const fetchQuiz = async () => {
-  //     if (aid) {
-  //       console.log("Fetching quiz data for aid:", aid);
-  //       const fetchedQuiz = await quizClient.findQuizById(cid, aid, "preview");
-        
-  //       if (fetchedQuiz) {
-  //         // Update state with fetched data
-  //         console.log(fetchedQuiz);
-  //         setQuiz(fetchedQuiz);
-  //          // updates questions list
-  //       }
-  //     }
-  //   };
-  //   fetchQuiz();
-  // }, [cid, aid]);
-
+  
 // Fetch quiz data
 useEffect(() => {
   const fetchQuiz = async () => {
@@ -113,6 +95,20 @@ useEffect(() => {
 }, [cid, aid]);
 
 
+const handleDeleteQuestion = async (questionId: any) => {
+  try {
+    console.log(`Attempting to delete question with ID: ${questionId}`);
+    await quizClient.deleteQuestion(questionId);
+    const updatedQuestions = questions.filter((question) => question._id !== questionId);
+    console.log("Updated questions after deletion:", updatedQuestions);
+    setQuestions(updatedQuestions);
+  } catch (error) {
+    console.error('Error deleting question:', error);
+    alert('Failed to delete question.');
+  }
+};
+
+
   const handleAddChoice = () => {
     setNewQuestion({
       ...newQuestion,
@@ -139,42 +135,36 @@ useEffect(() => {
     }));
     setNewQuestion({ ...newQuestion, options: updatedOptions });
   };
-
+  
   const handleSaveQuestion = async () => {
     try {
-
+      // Validate the new question before saving
+      if (!newQuestion.title || !newQuestion.question || newQuestion.options.length === 0) {
+        alert('Please fill in all the question fields before saving.');
+        return;
+      }
+  
       const questionToSave = { ...newQuestion, type: questionType };
-
+  
       // Call backend to add the question
       const savedQuestion = await quizClient.addQuestionToQuiz(aid, questionToSave);
       console.log("Testing saved question", savedQuestion);
       setQuestions([...questions, savedQuestion]);
   
       // Reset the newQuestion form for the next new question
-      setNewQuestion({ 
-        _id: null,
-        quizId: cid,
-        title: "", 
-        points: 1, 
-        question: "", 
-        options: [{ value: "" }], 
-        answer: [], 
-        type: "" 
-      });
-
-      
+      resetNewQuestion();
+  
     } catch (error) {
       console.error('Error saving question:', error);
       alert('Failed to save question.');
     }
   };
-
   
-  const handleCancelQuestion = () => {
-    // Reset new question fields
+  // Function to reset the new question form fields to the default values
+  const resetNewQuestion = () => {
     setNewQuestion({
       _id: null,
-      quizId: cid,
+      quizId: aid,
       title: "",
       points: 1,
       question: "",
@@ -182,7 +172,18 @@ useEffect(() => {
       answer: [],
       type: "Multiple Choice",
     });
+  
+    // Set question type back to "Multiple Choice" by default
+    setQuestionType("Multiple Choice");
   };
+  
+  const handleCancelQuestion = () => {
+    // Reset new question fields
+    resetNewQuestion();
+  };
+  
+
+
 
   return (
     <div className="container mt-4">
@@ -588,32 +589,38 @@ useEffect(() => {
             </Button>
           </div>
         </Tab>
+{/* List of quizzes questions */}
+<Tab eventKey="questions-list" title="Questions List">
+  {questions.length > 0 ? (
+    <div className="question-list">
+      {questions.map((question, index) => (
+        <Card key={index} className="mb-3">
+          <Card.Body>
+            <Card.Title>{question.title}</Card.Title>
+            <Card.Text>Points: {question.points}</Card.Text>
+            <Card.Text>Type: {question.type}</Card.Text>
+            <Button
+              variant="secondary"
+              onClick={() => setEditingQuestion(question)}
+              className="me-2"
+            >
+              Edit Question
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => handleDeleteQuestion(question._id)}
+            >
+              Delete Question
+            </Button>
+          </Card.Body>
+        </Card>
+      ))}
+    </div>
+  ) : (
+    <p>No questions added yet.</p>
+  )}
+</Tab>
 
-                     {/* List of quizzes questions */}
-                     <Tab eventKey="questions-list" title="Questions List">
-          
-          {questions.length > 0 ? (
-            <div className="question-list">
-              {questions.map((question, index) => (
-                <Card key={index} className="mb-3">
-                  <Card.Body>
-                    <Card.Title>{question.title}</Card.Title>
-                    <Card.Text>Points: {question.points}</Card.Text>
-                    <Card.Text>Type: {question.type}</Card.Text>
-                    <Button
-                      variant="secondary"
-                      onClick={() => setEditingQuestion(question)}
-                    >
-                      Edit Question
-                    </Button>
-                  </Card.Body>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p>No questions added yet.</p>
-          )}
-        </Tab>
       </Tabs>
 
       {/* <div className="text-end">

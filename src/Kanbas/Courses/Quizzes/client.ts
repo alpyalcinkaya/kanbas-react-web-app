@@ -88,4 +88,17 @@ export const addQuestionToQuiz = async (quizId: any, questionData: any) => {
   }
 };
 
+// Delete a quiz by its ID
+export const deleteQuestion = async (questionId: any) => {
+  try {
+    console.log(`Deleting question with ID: ${questionId}`);
+    const response = await axiosInstance.delete(`/api/questions/${questionId}`);
+    console.log("Question deleted successfully:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error deleting question:", error);
+    throw error;
+  }
+};
+
 
