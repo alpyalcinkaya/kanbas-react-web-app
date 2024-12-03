@@ -14,64 +14,99 @@ import * as courseClient from "./Courses/client";
 
 export default function Kanbas() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [enrolling, setEnrolling] = useState<boolean>(false);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
 
   const [course, setCourse] = useState<any>({
-    _id: "1234",
+    _id: "0",
     name: "New Course",
     number: "New Number",
     startDate: "2023-09-10",
     endDate: "2023-12-15",
     description: "New Description",
   });
+  
+  const findCoursesForUser = async () => {
+    try {
+      const courses = await userClient.findCoursesForUser(currentUser._id);
+      setCourses(courses);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const fetchCourses = async () => {
+    try {
+      const allCourses = await courseClient.fetchAllCourses();
+      const enrolledCourses = await userClient.findCoursesForUser(
+        currentUser._id
+      );
+      const courses = allCourses.map((course: any) => {
+        if (enrolledCourses.find((c: any) => c._id === course._id)) {
+          return { ...course, enrolled: true };
+        } else {
+          return course;
+        }
+      });
+      setCourses(courses);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+ 
+  const updateEnrollment = async (courseId: string, enrolled: boolean) => {
+    if (enrolled) {
+      await userClient.enrollIntoCourse(currentUser._id, courseId);
+    } else {
+      await userClient.unenrollFromCourse(currentUser._id, courseId);
+    }
+    setCourses(
+      courses.map((course) => {
+        if (course._id === courseId) {
+          return { ...course, enrolled: enrolled };
+        } else {
+          return course;
+        }
+      })
+    );
+  };
+ 
+
 
   // Add a new course
   const addNewCourse = async () => {
-    try {
-      const newCourse = await userClient.createCourse(course);
-      setCourses(prevCourses => [...prevCourses, newCourse]);
-    } catch (error) {
-      console.error("Failed to add course:", error);
-    }
+    const newCourse = await courseClient.createCourse(course);
+    setCourses([...courses, newCourse]);
   };
 
   // Delete a course
   const deleteCourse = async (courseId: string) => {
-    try {
-      await courseClient.deleteCourse(courseId);
-      setCourses(prevCourses => prevCourses.filter((c) => c._id !== courseId));
-    } catch (error) {
-      console.error("Failed to delete course:", error);
-    }
+    const status = await courseClient.deleteCourse(courseId);
+    setCourses(courses.filter((course) => course._id !== courseId));
+    
   };
 
   // Update a course
   const updateCourse = async () => {
-    try {
-      await courseClient.updateCourse(course);
-      setCourses(prevCourses =>
-        prevCourses.map((c) => (c._id === course._id ? course : c))
-      );
-    } catch (error) {
-      console.error("Failed to update course:", error);
-    }
-  };
-
-  // Fetch the courses assigned to the logged-in faculty
-  const fetchCourses = async () => {
-    try {
-      const fetchedCourses = await courseClient.fetchAllCourses();
-      setCourses(fetchedCourses);
-    } catch (error) {
-      console.error("Failed to fetch courses:", error);
-    }
+    await courseClient.updateCourse(course);
+    setCourses(
+      courses.map((c) => {
+        if (c._id === course._id){
+          return course;
+        } else {
+          return c;
+        }
+      })
+    );
   };
 
   useEffect(() => {
-    if (currentUser?.role === "FACULTY") {
+    if (enrolling) {
       fetchCourses();
+    } else {
+      findCoursesForUser();
     }
-  }, [currentUser]);
+  }, [currentUser, enrolling]);
+
 
   return (
     <Session>
@@ -92,7 +127,10 @@ export default function Kanbas() {
                     addNewCourse={addNewCourse}
                     deleteCourse={deleteCourse}
                     updateCourse={updateCourse}
-                  />
+                    enrolling={enrolling} 
+                    setEnrolling={setEnrolling}
+                    updateEnrollment={updateEnrollment}
+                    />
                 </ProtectedRoute>
               }
             />
