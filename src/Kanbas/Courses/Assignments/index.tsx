@@ -28,13 +28,16 @@ export default function Assignments() {
       fetchAssignments(); // Fetch assignments when component mounts
     }
   }, [cid]);
-
+  
   const handleDelete = async (assignmentId: string) => {
     if (window.confirm("Are you sure you want to delete this assignment?")) {
-      await assignmentClient.deleteAssignment(assignmentId);
-      setAssignments(assignments.filter((assignment) => assignment._id !== assignmentId));
-
+      try {
+        await assignmentClient.deleteAssignment(assignmentId);
+        setAssignments(prev => prev.filter(assignment => assignment._id !== assignmentId));
+      } catch (error) {
+        console.error(error);
       }
+    }
   };
   
   return (

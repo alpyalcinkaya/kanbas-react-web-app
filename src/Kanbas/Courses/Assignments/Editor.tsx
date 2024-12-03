@@ -5,9 +5,8 @@ import { useDispatch } from "react-redux";
 import { addAssignment, updateAssignment } from "./reducer";
 
 export default function AssignmentEditor() {
-  const { cid, aid } = useParams<{ cid: string; aid: string }>();
+  const { cid, aid } = useParams();  
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   // State variables
   const [title, setTitle] = useState("");
@@ -27,45 +26,33 @@ export default function AssignmentEditor() {
           setTitle(assignment.title);
           setDescription(assignment.description);
           setPoints(assignment.points);
-          setDueDate(assignment.dueDate);
-          setAvailableFrom(assignment.availableFrom);
-          setAvailableUntil(assignment.availableUntil);
+          setDueDate(assignment.dueDate ? new Date(assignment.dueDate).toISOString().slice(0, 16) : "");
+          setAvailableFrom(assignment.availableFrom ? new Date(assignment.availableFrom).toISOString().slice(0, 16) : "");
+          setAvailableUntil(assignment.availableUntil ? new Date(assignment.availableUntil).toISOString().slice(0, 16) : "");
         }
       }
     };
     fetchAssignment();
   }, [cid, aid]);
 
+
   // Handle Save Button Click
   const handleSave = async () => {
     try {
+      const assignmentData = {
+        title,
+        description,
+        points,
+        dueDate: new Date(dueDate),
+        availableFrom: new Date(availableFrom),
+        availableUntil: new Date(availableUntil),
+        course: cid,
+      };
+
       if (aid && aid !== "New") {
-        // Edit mode: Update existing assignment
-        const updatedAssignment = {
-          _id: aid,
-          title,
-          description,
-          points,
-          dueDate,
-          availableFrom,
-          availableUntil,
-          course: cid,
-        };
-        await assignmentClient.updateAssignment(updatedAssignment);
-        dispatch(updateAssignment(updatedAssignment));
+        await assignmentClient.updateAssignment({ _id: aid, ...assignmentData });
       } else {
-        // Add mode: Create a new assignment
-        const newAssignment = {
-          title,
-          description,
-          points,
-          dueDate,
-          availableFrom,
-          availableUntil,
-          course: cid,
-        };
-        const createdAssignment = await assignmentClient.createAssignmentForCourse(cid, newAssignment);
-        dispatch(addAssignment(createdAssignment)); // Use the created assignment with its new ID
+        await assignmentClient.createAssignmentForCourse(cid, assignmentData);
       }
       navigate(`/Kanbas/Courses/${cid}/Assignments`);
     } catch (error) {
