@@ -18,7 +18,7 @@ export default function DestailsScreen() {
   const dispatch = useDispatch();
   
   const [editingQuestion, setEditingQuestion] = useState<any>(null); // Holds the question being edited
-  
+  const [scores, setScores] = useState<{ [key: string]: number}>({})
   const [questions, setQuestions] = useState<any[]>([]);
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
@@ -26,7 +26,7 @@ export default function DestailsScreen() {
     title: "",
     points: 1,
     question: "",
-    options: [{ value: ""}],
+    options: [{ value: "", isCorrect: false}],
     answer: [],
     type: "Multiple Choice",
   });
@@ -112,7 +112,7 @@ const handleDeleteQuestion = async (questionId: any) => {
   const handleAddChoice = () => {
     setNewQuestion({
       ...newQuestion,
-      options: [...newQuestion.options, { value: "" }],
+      options: [...newQuestion.options, { value: "", isCorrect: false }],
     });
   };
 
@@ -132,6 +132,14 @@ const handleDeleteQuestion = async (questionId: any) => {
     const updatedOptions = newQuestion.options.map((option, i) => ({
       ...option,
       isCorrect: i === index,
+    }));
+    setNewQuestion({ ...newQuestion, options: updatedOptions });
+  };
+
+  const handleCorrectChoiceChangeCheckbox = (index: number, e: any) => {
+    const updatedOptions = newQuestion.options.map((option, i) => ({
+      ...option,
+      isCorrect: i === index ? e.target.checked : option.isCorrect,
     }));
     setNewQuestion({ ...newQuestion, options: updatedOptions });
   };
@@ -168,7 +176,7 @@ const handleDeleteQuestion = async (questionId: any) => {
       title: "",
       points: 1,
       question: "",
-      options: [{ value: "" }],
+      options: [{ value: "", isCorrect: false }],
       answer: [],
       type: "Multiple Choice",
     });
@@ -181,9 +189,114 @@ const handleDeleteQuestion = async (questionId: any) => {
     // Reset new question fields
     resetNewQuestion();
   };
+
+  const handleMultipleChoiceAnswers = (e: any, opt: any, index: number) => {
+    console.log("### index", index)
+    console.log("### Event", e)
+    console.log("### Opt", opt)
+    if (e.target.checked == true && opt.isCorrect == true) {
+      // set score to 1
+      console.log("### correct answer")
+      const k = String(index+1)
+      const newState = scores
+      if (k in newState) {
+        newState[k] = newState[k] + 1
+      } else {
+        newState[k] = 1
+      }
+      setScores((newState))
+    } else if (e.target.checked == false && opt.isCorrect == true) {
+      // reset score to 0
+      console.log("### incorrect answer")
+      const k = String(index+1)
+      const newState = scores
+      newState[k] = newState[k] - 1
+      setScores((prevScores) => (newState))
+    }
+    console.log("### Scores", scores)
+  }
+
+  const handleTrueOrFalseAnswer = (e: any, opt: any, index: number) => {
+    console.log("### index", index)
+    console.log("### Event", e)
+    console.log("### Opt", opt)
+    if (e.target.checked == true && opt.isCorrect == true) {
+      // set score to 1
+      console.log("### correct answer")
+      const k = String(index+1)
+      const newState = scores
+      newState[k] = 1
+      setScores((newState))
+    } else {
+      // reset score to 0
+      console.log("### incorrect answer")
+      const k = String(index+1)
+      const newState = scores
+      newState[k] = 0
+      setScores((prevScores) => (newState))
+    }
+    console.log("### Scores", scores)
+  }
+
+  const handleAnswer = (type: string, e: any, opt: any, index: number) => {
+    if (type == "True/False") {
+      handleTrueOrFalseAnswer(e, opt, index)
+    } else if (type == "Multiple Choice") {
+      handleMultipleChoiceAnswers(e, opt, index)
+    }
+  }
+
+  const renderAnswers = (question: { options: any; type: string}, index: number) => {
+    const type = question.type;
+    let answerType: string;
+    if (type == "True/False") {
+      answerType = "radio"
+    } else if (type == "Multiple Choice") {
+      answerType = "checkbox"
+    }
+
+    const answers = question.options.map((opt: any, optIndex: number) => (
+      <div key={optIndex} style={{ marginBottom: '10px' }}>
+        <input 
+          type= { answerType }
+          id={`question-${index}-option-${optIndex}`} 
+          name={`question-${index}`} 
+          value={opt.value} 
+          onChange={(e) => handleAnswer(type, e, opt, index)}
+        />
+        <label 
+          htmlFor={`question-${index}-option-${optIndex}`} 
+          style={{ marginLeft: '8px' }}
+        >
+          {opt.value}
+        </label>
+      </div>
+    ))
+    return answers
+  }
   
+  const [toggleResults, setToggleResults] = useState(false);
 
+  const handleSubmitOnClick = () => {
+    console.log("### WHATSUPPPPPPP!!!")
+    setToggleResults(!toggleResults)
+  }
 
+  const displayResults = () => {
+    const results = Object.entries(scores).map(([key, value]) => (
+      <div>
+        Question {key}: {value}
+      </div>
+    ));
+
+    return (
+      <div>
+        <h3> Your scores are: </h3>
+        {results}
+      </div>
+
+    )
+  };
 
   return (
     <div className="container mt-4">
@@ -419,9 +532,9 @@ const handleDeleteQuestion = async (questionId: any) => {
                 {newQuestion.options.map((choice, index) => (
                   <div key={index} className="d-flex align-items-center mb-2">
                     <input
-                      type="radio"
+                      type="checkbox"
                       name="correctChoice"
-                      onChange={() => handleCorrectChoiceChange(index)}
+                      onChange={(e) => handleCorrectChoiceChangeCheckbox(index, e)}
                       className="me-2"
                     />
                     <input
@@ -620,7 +733,60 @@ const handleDeleteQuestion = async (questionId: any) => {
     <p>No questions added yet.</p>
   )}
 </Tab>
+{/* <Tab eventKey="preview-quiz" title="Preview Quiz">
+{questions.map((question, index) => (
+        <Card key={index} className="mb-3">
+          <Card.Body>
+          <h3>Question {index+1 }: {question.title}</h3>
+            <Card.Text>Points: {question.points}</Card.Text>
+            <div dangerouslySetInnerHTML={{ __html: question.question }} />
+            {
+              question.options.map((opt: { value: string}) => (
+                <p>{opt.value}</p>
+              ))
+            }
+          </Card.Body>
+        </Card>
+      ))}
+</Tab> */}
 
+<Tab eventKey="preview-quiz" title="Preview Quiz">
+  {questions.map((question, index) => (
+    <Card key={index} className="mb-3">
+      <Card.Body style={{ padding: 0 }}> {/* Remove default padding */}
+        {/* Light grey rectangle filling the width */}
+        <div style={{
+          backgroundColor: '#f0f0f0', 
+          padding: '15px', 
+          borderRadius: '8px 8px 0 0', // Rounded only on top corners
+          display: 'flex', // Align items horizontally
+          justifyContent: 'space-between', // Space between title and points
+          alignItems: 'center' // Center align vertically
+        }}>
+          <h5 style={{ margin: 0, flex: 1, fontWeight: 'bold' }}>Question {index + 1}: {question.title}</h5>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>Points: {question.points}</p>
+        </div>
+
+        {/* Render the question content */}
+        <div style={{ padding: '15px' }}>
+          <div dangerouslySetInnerHTML={{ __html: question.question }} />
+
+          <hr style={{padding: '1px', borderTop: '1px solid #ccc'}} />
+
+          {/* Render the options as checkboxes */}
+          <div>
+            { renderAnswers(question, index) }
+          </div>
+        </div>
+        <div>
+        </div>
+      </Card.Body>
+    </Card>
+  ))}
+  { displayResults() }
+
+  <Button variant="primary" onClick={ handleSubmitOnClick }> Submit </Button>
+</Tab>
       </Tabs>
 
       {/* <div className="text-end">
