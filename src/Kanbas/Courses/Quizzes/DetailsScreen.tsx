@@ -36,7 +36,7 @@ export default function DestailsScreen() {
         title: editingQuestion.title || "",
         points: editingQuestion.points || 1,
         question: editingQuestion.question || "",
-        options: editingQuestion.options || [{ value: "", isCorrect: false }],
+        options: editingQuestion.options.map((opt: any) => opt === true ? "True" : opt === false ? "False" : opt),
         answer: editingQuestion.answer || [],
         type: editingQuestion.type || "Multiple Choice",
       };
@@ -45,6 +45,7 @@ export default function DestailsScreen() {
       setQuestionType(updatedQuestion.type); // Synchronize question type
     }
   }, [editingQuestion, aid]);
+  
   
   
 
@@ -535,6 +536,7 @@ const handleDeleteQuestion = async (questionId: any) => {
                   Question Points
                 </label>
                 <input
+                 key={newQuestion._id}
                   type="number"
                   value={newQuestion.points}
                   onChange={(e) => setNewQuestion({ ...newQuestion, points: Number(e.target.value) })}
@@ -561,6 +563,7 @@ const handleDeleteQuestion = async (questionId: any) => {
                 {newQuestion.options.map((choice, index) => (
                   <div key={index} className="d-flex align-items-center mb-2">
                     <input
+                     key={newQuestion._id}
                       type="checkbox"
                       name="correctChoice"
                       onChange={(e) => handleCorrectChoiceChangeCheckbox(index, e)}
@@ -612,6 +615,7 @@ const handleDeleteQuestion = async (questionId: any) => {
                 <br />  Question Title
                 </label>
                 <input
+                
                   type="text"
                   value={newQuestion.title}
                   onChange={(e) => setNewQuestion({ ...newQuestion, title: e.target.value })}
@@ -625,6 +629,7 @@ const handleDeleteQuestion = async (questionId: any) => {
                   Question Points
                 </label>
                 <input
+                 
                   type="number"
                   value={newQuestion.points}
                   onChange={(e) => setNewQuestion({ ...newQuestion, points: Number(e.target.value) })}
@@ -638,6 +643,7 @@ const handleDeleteQuestion = async (questionId: any) => {
                   Question Text
                 </label>
                 <ReactQuill
+                 key={newQuestion._id} // Force re-render when editing a new question
                   value={newQuestion.question}
                   onChange={(value) => setNewQuestion({ ...newQuestion, question: value })}
                   placeholder="Write question here..."
@@ -712,6 +718,7 @@ const handleDeleteQuestion = async (questionId: any) => {
                   Question Points
                 </label>
                 <input
+                 key={newQuestion._id}
                   type="number"
                   value={newQuestion.points}
                   onChange={(e) => setNewQuestion({ ...newQuestion, points: Number(e.target.value) })}
@@ -738,6 +745,7 @@ const handleDeleteQuestion = async (questionId: any) => {
           {newQuestion.options.map((option, index) => (
             <div key={index} className="d-flex align-items-center mb-2">
               <input
+                key={newQuestion._id}
                 type="text"
                 value={option.value}
                 onChange={(e) => handleChoiceChange(index, e.target.value)}
