@@ -41,6 +41,8 @@ export const updateQuiz = async (quiz: any) => {
   return response.data;
 };
 
+
+
 // Delete a quiz by its ID
 export const deleteQuiz = async (quizId: any) => {
   const response = await axiosInstance.delete(`${QUIZZES_API}/${quizId}`);
@@ -63,6 +65,27 @@ export const findQuizById = async (
 export const createQuestion = async (questionData: any) => {
   const response = await axiosInstance.post(`/api/questions`, questionData);
   return response.data;
+};
+
+export const updateQuestion = async (questionId : Number, questionUpdates : any) => {
+  try {
+    console.log("Attempting to update in client");
+    console.log(questionId, typeof(questionId), "client");
+    // Send a PUT request to update the question
+    const response = await axiosInstance.put(
+      
+      `/api/questions/${questionId}/update`, // URL for the API endpoint
+      questionUpdates // The updated question data
+    );
+
+    console.log(response);
+
+    // Return the updated question from the server's response
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating question with ID ${questionId}:`, error);
+    
+  }
 };
 
 // Associate a question with a quiz

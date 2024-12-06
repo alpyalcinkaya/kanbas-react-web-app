@@ -13,12 +13,8 @@ export default function DestailsScreen() {
   const { cid, aid } = useParams<{ cid: any; aid: any }>();
   console.log("QuizEditor Params - courseId:", cid, ", quizId:", aid);  // Debugging params
   
-
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  
   const [editingQuestion, setEditingQuestion] = useState<any>(null); // Holds the question being edited
-  
+  const [scores, setScores] = useState<{ [key: string]: number}>({})
   const [questions, setQuestions] = useState<any[]>([]);
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
@@ -26,10 +22,35 @@ export default function DestailsScreen() {
     title: "",
     points: 1,
     question: "",
-    options: [{ value: ""}],
+    options: [{ value: "", isCorrect: false}],
     answer: [],
     type: "Multiple Choice",
   });
+
+  useEffect(() => {
+    
+    if (editingQuestion) {
+      
+      console.log("Editing Question Updated:", editingQuestion); // Debugging
+      const updatedQuestion = {
+        _id: editingQuestion._id,
+        quizId: editingQuestion.quizId || aid,
+        title: editingQuestion.title || "",
+        points: editingQuestion.points || 1,
+        question: editingQuestion.question || "",
+        options: editingQuestion.options || [{ value: "", isCorrect: false }],
+        answer: editingQuestion.answer || [],
+        type: editingQuestion.type || "Multiple Choice",
+      };
+     
+      setQuestionType(updatedQuestion.type); // Ensure question type is updated
+      setNewQuestion(updatedQuestion);
+    }
+  }, [editingQuestion, aid]);
+  
+
+  
+
   const [questionType, setQuestionType] = useState("Multiple Choice");
 
 
@@ -112,7 +133,7 @@ const handleDeleteQuestion = async (questionId: any) => {
   const handleAddChoice = () => {
     setNewQuestion({
       ...newQuestion,
-      options: [...newQuestion.options, { value: "" }],
+      options: [...newQuestion.options, { value: "", isCorrect: false }],
     });
   };
 
@@ -135,30 +156,32 @@ const handleDeleteQuestion = async (questionId: any) => {
     }));
     setNewQuestion({ ...newQuestion, options: updatedOptions });
   };
+
+  const handleCorrectChoiceChangeCheckbox = (index: number, e: any) => {
+    const updatedOptions = newQuestion.options.map((option, i) => ({
+      ...option,
+      isCorrect: i === index ? e.target.checked : option.isCorrect,
+    }));
+    setNewQuestion({ ...newQuestion, options: updatedOptions });
+  };
   
   const handleSaveQuestion = async () => {
-    try {
-      // Validate the new question before saving
-      if (!newQuestion.title || !newQuestion.question || newQuestion.options.length === 0) {
-        alert('Please fill in all the question fields before saving.');
-        return;
-      }
+  if (newQuestion._id) {
+    // Edit logic
+    await quizClient.updateQuestion(newQuestion._id, newQuestion);
+    setQuestions(
+      questions.map((q) => (q._id === newQuestion._id ? newQuestion : q))
+    );
+  } else {
+    // Add logic
+    const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
+    setQuestions([...questions, savedQuestion]);
+  }
+  resetNewQuestion();
+  setKey("questions-list");
+};
+
   
-      const questionToSave = { ...newQuestion, type: questionType };
-  
-      // Call backend to add the question
-      const savedQuestion = await quizClient.addQuestionToQuiz(aid, questionToSave);
-      console.log("Testing saved question", savedQuestion);
-      setQuestions([...questions, savedQuestion]);
-  
-      // Reset the newQuestion form for the next new question
-      resetNewQuestion();
-  
-    } catch (error) {
-      console.error('Error saving question:', error);
-      alert('Failed to save question.');
-    }
-  };
   
   // Function to reset the new question form fields to the default values
   const resetNewQuestion = () => {
@@ -168,7 +191,7 @@ const handleDeleteQuestion = async (questionId: any) => {
       title: "",
       points: 1,
       question: "",
-      options: [{ value: "" }],
+      options: [{ value: "", isCorrect: false }],
       answer: [],
       type: "Multiple Choice",
     });
@@ -180,23 +203,133 @@ const handleDeleteQuestion = async (questionId: any) => {
   const handleCancelQuestion = () => {
     // Reset new question fields
     resetNewQuestion();
+    setEditingQuestion(null); // clear editing state
+    setKey("questions-list");
   };
+
+  const handleMultipleChoiceAnswers = (e: any, opt: any, index: number) => {
+    console.log("### index", index)
+    console.log("### Event", e)
+    console.log("### Opt", opt)
+    if (e.target.checked === true && opt.isCorrect === true) {
+      // set score to 1
+      console.log("### correct answer")
+      const k = String(index+1)
+      const newState = scores
+      if (k in newState) {
+        newState[k] = newState[k] + 1
+      } else {
+        newState[k] = 1
+      }
+      setScores((newState))
+    } else if (e.target.checked === false && opt.isCorrect === true) {
+      // reset score to 0
+      console.log("### incorrect answer")
+      const k = String(index+1)
+      const newState = scores
+      newState[k] = newState[k] - 1
+      setScores((prevScores) => (newState))
+    }
+    console.log("### Scores", scores)
+  }
+
+  const handleTrueOrFalseAnswer = (e: any, opt: any, index: number) => {
+    console.log("### index", index)
+    console.log("### Event", e)
+    console.log("### Opt", opt)
+    if (e.target.checked === true && opt.isCorrect === true) {
+      // set score to 1
+      console.log("### correct answer")
+      const k = String(index+1)
+      const newState = scores
+      newState[k] = 1
+      setScores((newState))
+    } else {
+      // reset score to 0
+      console.log("### incorrect answer")
+      const k = String(index+1)
+      const newState = scores
+      newState[k] = 0
+      setScores((prevScores) => (newState))
+    }
+    console.log("### Scores", scores)
+  }
+
+  const handleAnswer = (type: string, e: any, opt: any, index: number) => {
+    if (type === "True/False") {
+      handleTrueOrFalseAnswer(e, opt, index)
+    } else if (type === "Multiple Choice") {
+      handleMultipleChoiceAnswers(e, opt, index)
+    }
+  }
+
+  const renderAnswers = (question: { options: any; type: string}, index: number) => {
+    const type = question.type;
+    let answerType: string;
+    if (type === "True/False") {
+      answerType = "radio"
+    } else if (type === "Multiple Choice") {
+      answerType = "checkbox"
+    }
+
+    const answers = question.options.map((opt: any, optIndex: number) => (
+      <div key={optIndex} style={{ marginBottom: '10px' }}>
+        <input 
+          type= { answerType }
+          id={`question-${index}-option-${optIndex}`} 
+          name={`question-${index}`} 
+          value={opt.value} 
+          onChange={(e) => handleAnswer(type, e, opt, index)}
+        />
+        <label 
+          htmlFor={`question-${index}-option-${optIndex}`} 
+          style={{ marginLeft: '8px' }}
+        >
+          {opt.value}
+        </label>
+      </div>
+    ))
+    return answers
+  }
   
+  const [toggleResults, setToggleResults] = useState(false);
 
+  const handleSubmitOnClick = () => {
+    console.log("### WHATSUPPPPPPP!!!")
+    setToggleResults(!toggleResults)
+  }
 
+  const displayResults = () => {
+    const results = Object.entries(scores).map(([key, value]) => (
+      <div>
+        Question {key}: {value}
+      </div>
+    ));
+
+    return (
+      <div>
+        <h3> Your scores are: </h3>
+        {results}
+      </div>
+
+    )
+  };
 
   return (
     <div className="container mt-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h3 className="text-start">{quiz.title}</h3>
         <div>
-          <Button variant="secondary" className="me-2">
+          {/* <Button variant="secondary" className="me-2">
             Preview
-          </Button>
+          </Button> */}
           <Button
             variant="secondary"
-            onClick={() =>
-              navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/edit`)
+            onClick={() => {
+               {/* Test new question or change to get another question */}
+              setEditingQuestion(newQuestion);
+              setKey("questions");
+            }
             }
           >
             Edit
@@ -407,11 +540,12 @@ const handleDeleteQuestion = async (questionId: any) => {
                   Question Text
                 </label>
                 <ReactQuill
-                  value={newQuestion.question}
-                  onChange={(value) => setNewQuestion({ ...newQuestion, question: value })}
-                  placeholder="Write question here..."
-                  className="quill-editor"
-                />
+                      key={newQuestion._id} // Force re-render when editing a new question
+                      value={newQuestion.question}
+                      onChange={(value) => setNewQuestion({ ...newQuestion, question: value })}
+                      placeholder="Write question here..."
+                      className="quill-editor"
+                    />
               </div>
 
               <div className="mb-4">
@@ -419,9 +553,9 @@ const handleDeleteQuestion = async (questionId: any) => {
                 {newQuestion.options.map((choice, index) => (
                   <div key={index} className="d-flex align-items-center mb-2">
                     <input
-                      type="radio"
+                      type="checkbox"
                       name="correctChoice"
-                      onChange={() => handleCorrectChoiceChange(index)}
+                      onChange={(e) => handleCorrectChoiceChangeCheckbox(index, e)}
                       className="me-2"
                     />
                     <input
@@ -601,7 +735,10 @@ const handleDeleteQuestion = async (questionId: any) => {
             <Card.Text>Type: {question.type}</Card.Text>
             <Button
               variant="secondary"
-              onClick={() => setEditingQuestion(question)}
+              onClick={() => { setEditingQuestion(question);
+                setKey("questions");
+              }}
+             
               className="me-2"
             >
               Edit Question
@@ -620,7 +757,60 @@ const handleDeleteQuestion = async (questionId: any) => {
     <p>No questions added yet.</p>
   )}
 </Tab>
+{/* <Tab eventKey="preview-quiz" title="Preview Quiz">
+{questions.map((question, index) => (
+        <Card key={index} className="mb-3">
+          <Card.Body>
+          <h3>Question {index+1 }: {question.title}</h3>
+            <Card.Text>Points: {question.points}</Card.Text>
+            <div dangerouslySetInnerHTML={{ __html: question.question }} />
+            {
+              question.options.map((opt: { value: string}) => (
+                <p>{opt.value}</p>
+              ))
+            }
+          </Card.Body>
+        </Card>
+      ))}
+</Tab> */}
 
+<Tab eventKey="preview-quiz" title="Preview Quiz">
+  {questions.map((question, index) => (
+    <Card key={index} className="mb-3">
+      <Card.Body style={{ padding: 0 }}> {/* Remove default padding */}
+        {/* Light grey rectangle filling the width */}
+        <div style={{
+          backgroundColor: '#f0f0f0', 
+          padding: '15px', 
+          borderRadius: '8px 8px 0 0', // Rounded only on top corners
+          display: 'flex', // Align items horizontally
+          justifyContent: 'space-between', // Space between title and points
+          alignItems: 'center' // Center align vertically
+        }}>
+          <h5 style={{ margin: 0, flex: 1, fontWeight: 'bold' }}>Question {index + 1}: {question.title}</h5>
+          <p style={{ margin: 0, fontWeight: 'bold' }}>Points: {question.points}</p>
+        </div>
+
+        {/* Render the question content */}
+        <div style={{ padding: '15px' }}>
+          <div dangerouslySetInnerHTML={{ __html: question.question }} />
+
+          <hr style={{padding: '1px', borderTop: '1px solid #ccc'}} />
+
+          {/* Render the options as checkboxes */}
+          <div>
+            { renderAnswers(question, index) }
+          </div>
+        </div>
+        <div>
+        </div>
+      </Card.Body>
+    </Card>
+  ))}
+  { displayResults() }
+
+  <Button variant="primary" onClick={ handleSubmitOnClick }> Submit </Button>
+</Tab>
       </Tabs>
 
       {/* <div className="text-end">
