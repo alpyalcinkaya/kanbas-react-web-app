@@ -277,9 +277,16 @@ const handleDeleteQuestion = async (questionId: any) => {
   
   const [toggleResults, setToggleResults] = useState(false);
 
-  const handleSubmitOnClick = () => {
-    console.log("### WHATSUPPPPPPP!!!")
+  const handleSubmitOnClick = async () => {
     setToggleResults(!toggleResults)
+    const updatedAttempts = quiz.numberAttempts - 1;
+
+    const updatedQuiz = {
+      ...quiz,
+      numberAttempts: updatedAttempts,
+    }
+    await quizClient.updateQuiz(updatedQuiz)
+    setQuiz(updatedQuiz)
   }
 
   const displayResults = () => {
@@ -785,7 +792,7 @@ const handleDeleteQuestion = async (questionId: any) => {
   ))}
   { displayResults() }
 
-  <Button variant="primary" onClick={ handleSubmitOnClick }> Submit </Button>
+  <Button variant="primary" disabled={quiz.numberAttempts <= 0}onClick={ handleSubmitOnClick }> {quiz.numberAttempts <= 0 ? "Max attempts reached" : "Submit"} </Button>
 </Tab>
       </Tabs>
 
