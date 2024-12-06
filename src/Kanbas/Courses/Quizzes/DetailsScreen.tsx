@@ -171,20 +171,23 @@ const handleDeleteQuestion = async (questionId: any) => {
   };
   
   const handleSaveQuestion = async () => {
-  if (newQuestion._id) {
-    // Edit logic
-    await quizClient.updateQuestion(newQuestion._id, newQuestion);
-    setQuestions(
-      questions.map((q) => (q._id === newQuestion._id ? newQuestion : q))
-    );
-  } else {
-    // Add logic
-    const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
-    setQuestions([...questions, savedQuestion]);
-  }
-  resetNewQuestion();
-  setKey("questions-list");
-};
+    try {
+      if (newQuestion._id) {
+        // Edit logic
+        console.log("Updating question with ID:", newQuestion._id);
+        const updatedQuestion = await quizClient.updateQuestion(newQuestion._id, newQuestion);
+        setQuestions(questions.map((q) => (q._id === newQuestion._id ? updatedQuestion : q)));
+      } else {
+        // Add logic
+        const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
+        setQuestions([...questions, savedQuestion]);
+      }
+      resetNewQuestion();
+      setKey("questions-list");
+    } catch (error) {
+      console.error("Error saving question:", error);
+    }
+  };
 
   
   
