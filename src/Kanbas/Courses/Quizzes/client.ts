@@ -22,11 +22,26 @@ export const findQuizzesForCourse = async (courseId: any) => {
   return response.data;
 };
 
+// Fetch questions by quiz ID
+export const findQuestionsByQuizId = async (quizId: any) => {
+  try {
+    console.log("Attempting to find questions for the quiz.");
+    const response = await axiosInstance.get(`${QUIZZES_API}/${quizId}/questions`);
+    console.log("findQuestionsByQuizId response: ", response);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error fetching questions 1 :", error);
+    throw error;
+  }
+};
+
 // Update an existing quiz
 export const updateQuiz = async (quiz: any) => {
   const response = await axiosInstance.put(`${QUIZZES_API}/${quiz._id}`, quiz);
   return response.data;
 };
+
+
 
 // Delete a quiz by its ID
 export const deleteQuiz = async (quizId: any) => {
@@ -52,6 +67,25 @@ export const createQuestion = async (questionData: any) => {
   return response.data;
 };
 
+export const updateQuestion = async (questionId : any, questionUpdates : any) => {
+  try {
+    console.log("Attempting to update in client");
+    console.log(questionId, typeof(questionId), "client");
+    const id = String(questionId);
+    // Send a PUT request to update the question
+    const response = await axiosInstance.put(`/api/questions/${questionId}/update`, questionUpdates);
+
+
+    console.log(response);
+
+    // Return the updated question from the server's response
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating question with ID ${questionId}:`, error);
+    
+  }
+};
+
 // Associate a question with a quiz
 export const associateQuestionWithQuiz = async (quizId: any, questionId: any) => {
   const response = await axiosInstance.post(
@@ -74,3 +108,18 @@ export const addQuestionToQuiz = async (quizId: any, questionData: any) => {
     throw error;
   }
 };
+
+// Delete a quiz by its ID
+export const deleteQuestion = async (questionId: any) => {
+  try {
+    console.log(`Deleting question with ID: ${questionId}`);
+    const response = await axiosInstance.delete(`/api/questions/${questionId}`);
+    console.log("Question deleted successfully:", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Error deleting question:", error);
+    throw error;
+  }
+};
+
+
