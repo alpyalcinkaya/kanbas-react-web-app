@@ -28,9 +28,7 @@ export default function DestailsScreen() {
   });
 
   useEffect(() => {
-    
     if (editingQuestion) {
-      
       console.log("Editing Question Updated:", editingQuestion); // Debugging
       const updatedQuestion = {
         _id: editingQuestion._id,
@@ -42,11 +40,12 @@ export default function DestailsScreen() {
         answer: editingQuestion.answer || [],
         type: editingQuestion.type || "Multiple Choice",
       };
-     
-      setQuestionType(updatedQuestion.type); // Ensure question type is updated
+  
       setNewQuestion(updatedQuestion);
+      setQuestionType(updatedQuestion.type); // Synchronize question type
     }
   }, [editingQuestion, aid]);
+  
   
 
   
@@ -54,10 +53,15 @@ export default function DestailsScreen() {
   const [questionType, setQuestionType] = useState("Multiple Choice");
 
 
-  const handleQuestionTypeChange = (newType: any) => {
+  const handleQuestionTypeChange = (newType: string) => {
+    console.log("Changing Question Type to:", newType);
     setQuestionType(newType);
-    setNewQuestion({...newQuestion, type: newType});
-  }
+    setNewQuestion((prev) => ({
+      ...prev,
+      type: newType,
+    }));
+  };
+  
 
  // Quiz state
  const [quiz, setQuiz] = useState<any>({
@@ -486,25 +490,29 @@ const handleDeleteQuestion = async (questionId: any) => {
             {/* Editor for quiz questions */}
         <Tab eventKey="questions" title="Questions Editor">
          
-          <div className="mb-4">
+          
+
+                       
+          {questionType === "Multiple Choice" && (
+            <>    
+           
+            <div className="mb-4">
             <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
               Question Type
             </label>
+           
             <select
               value={questionType}
-              onChange={(e) => setQuestionType(e.target.value)}
+              onChange={(e) => handleQuestionTypeChange(e.target.value)}
               className="form-select mb-3"
             >
               <option value="Multiple Choice">Multiple Choice</option>
               <option value="True/False">True/False</option>
               <option value="Fill in the Blank">Fill in the Blank</option>
             </select>
-          </div>
+         
 
-                       
-          {questionType === "Multiple Choice" && (
-            <>    
-            <div>
+         
             <label className="" style={{ fontSize: "1.1rem" }}>
               Enter your question and multiple possible answer choices, then select the correct answer. <br />
                 </label>   
@@ -576,7 +584,25 @@ const handleDeleteQuestion = async (questionId: any) => {
           {questionType === "True/False" && (
             
             <>
-            <div>
+            
+
+            <div className="mb-4">
+            <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+              Question Type
+            </label>
+           
+            <select
+              value={questionType}
+              onChange={(e) => handleQuestionTypeChange(e.target.value)}
+              className="form-select mb-3"
+            >
+              <option value="Multiple Choice">Multiple Choice</option>
+              <option value="True/False">True/False</option>
+              <option value="Fill in the Blank">Fill in the Blank</option>
+            </select>
+        
+
+
             <label className="" style={{ fontSize: "1.1rem" }}>
               Enter your question and multiple possible answer choices, then select the correct answer. <br />
                 </label>   
@@ -646,7 +672,23 @@ const handleDeleteQuestion = async (questionId: any) => {
 
 {questionType === "Fill in the Blank" && (
             <>
-            <div>
+              <div className="mb-4">
+            <label className="fw-bold" style={{ fontSize: "1.1rem" }}>
+              Question Type
+            </label>
+           
+            <select
+              value={questionType}
+              onChange={(e) => handleQuestionTypeChange(e.target.value)}
+              className="form-select mb-3"
+            >
+              <option value="Multiple Choice">Multiple Choice</option>
+              <option value="True/False">True/False</option>
+              <option value="Fill in the Blank">Fill in the Blank</option>
+            </select>
+        
+
+              
             <label className="" style={{ fontSize: "1.1rem" }}>
               Enter your question and multiple possible answer choices, then select the correct answer(s). <br />
                 </label>   
@@ -736,7 +778,10 @@ const handleDeleteQuestion = async (questionId: any) => {
             <Button
               variant="secondary"
               onClick={() => { setEditingQuestion(question);
+                handleQuestionTypeChange(question.type);
+                setQuestionType(question.type);
                 setKey("questions");
+
               }}
              
               className="me-2"
