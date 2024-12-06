@@ -67,16 +67,14 @@ export const createQuestion = async (questionData: any) => {
   return response.data;
 };
 
-export const updateQuestion = async (questionId : Number, questionUpdates : any) => {
+export const updateQuestion = async (questionId : any, questionUpdates : any) => {
   try {
     console.log("Attempting to update in client");
     console.log(questionId, typeof(questionId), "client");
+    const id = String(questionId);
     // Send a PUT request to update the question
-    const response = await axiosInstance.put(
-      
-      `/api/questions/${questionId}/update`, // URL for the API endpoint
-      questionUpdates // The updated question data
-    );
+    const response = await axiosInstance.put(`/api/questions/${questionId}/update`, questionUpdates);
+
 
     console.log(response);
 
