@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import React from "react";
 import * as quizClient from "./client";
+import { CheckCircleFill, XCircleFill } from "react-bootstrap-icons";
+
 import {
   Button,
   Row,
@@ -27,6 +29,7 @@ export default function DestailsScreen() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null); // Holds the question being edited
   const [scores, setScores] = useState<{ [key: string]: number }>({});
   const [questions, setQuestions] = useState<any[]>([]);
+  const [userAnswers, setUserAnswers] = useState<{ [key: string]: string }>({});
   const [newQuestion, setNewQuestion] = useState({
     _id: null,
     quizId: aid,
@@ -279,11 +282,18 @@ export default function DestailsScreen() {
     console.log("### Scores", scores);
   };
 
-  const handleAnswer = (type: string, e: any, opt: any, index: number) => {
+  const handleAnswer = (type: string, e: any, options: any, index: number) => {
     if (type === "True/False") {
-      handleTrueOrFalseAnswer(e, opt, index);
+      handleTrueOrFalseAnswer(e, options, index);
     } else if (type === "Multiple Choice") {
-      handleMultipleChoiceAnswers(e, opt, index);
+      handleMultipleChoiceAnswers(e, options, index);
+    } else if (type === "Fill in the Blank") {
+      const k = String(index + 1);
+      const userAnswer = e.target.value;
+      setUserAnswers((prev) => ({
+        ...prev,
+        [k]: userAnswer,
+      }));
     }
   };
 
@@ -292,6 +302,20 @@ export default function DestailsScreen() {
     index: number
   ) => {
     const type = question.type;
+
+    if (type === "Fill in the Blank") {
+      return (
+        <div className="mb-2">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Type your answer here"
+            onChange={(e) => handleAnswer(type, e, question.options, index)}
+          />
+        </div>
+      );
+    }
+
     const answerType = type === "True/False" ? "radio" : "checkbox";
 
     return question.options.map((opt: any, optIndex: number) => (
@@ -315,7 +339,22 @@ export default function DestailsScreen() {
   };
 
   const handleSubmitOnClick = async () => {
+    const newScores = { ...scores };
+
+    questions.forEach((question, index) => {
+      if (question.type === "Fill in the Blank") {
+        const questionNum = String(index + 1);
+        const userAnswer = userAnswers[questionNum]?.toLowerCase() || "";
+        const isCorrect = question.options.some(
+          (opt: any) => opt.value.toLowerCase() === userAnswer
+        );
+        newScores[questionNum] = isCorrect ? 1 : 0;
+      }
+    });
+
+    setScores(newScores);
     setToggleResults(!toggleResults);
+
     const updatedAttempts = quiz.numberAttempts - 1;
     const updatedQuiz = {
       ...quiz,
@@ -418,15 +457,59 @@ export default function DestailsScreen() {
               <h4>Quiz Results</h4>
             </Card.Header>
             <Card.Body>
-              {Object.entries(scores).map(([questionNum, score]) => (
-                <div key={questionNum} className="mb-2">
-                  <strong>Question {questionNum}:</strong> {score} point
-                  {score !== 1 ? "s" : ""}
-                </div>
-              ))}
-              <div className="mt-3 pt-3 border-top">
+              {questions.map((question, index) => {
+                const questionNum = String(index + 1);
+                const isCorrect =
+                  question.type === "Fill in the Blank"
+                    ? question.options.some(
+                        (opt: any) =>
+                          opt.value.toLowerCase() ===
+                          (userAnswers[questionNum] || "").toLowerCase()
+                      )
+                    : (scores[questionNum] || 0) ===
+                      question.options.filter((opt: any) => opt.isCorrect)
+                        .length;
+
+                // Calculate actual points earned based on correctness
+                const pointsEarned = isCorrect ? question.points : 0;
+
+                return (
+                  <div
+                    key={questionNum}
+                    className="mb-3 d-flex align-items-center"
+                  >
+                    {isCorrect ? (
+                      <CheckCircleFill
+                        className="text-success me-2"
+                        size={20}
+                      />
+                    ) : (
+                      <XCircleFill className="text-danger me-2" size={20} />
+                    )}
+                    <div>
+                      <strong>Question {questionNum}:</strong> {pointsEarned}{" "}
+                      out of {question.points} points
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="mt-4 pt-3 border-top">
                 <strong>Total Score:</strong>{" "}
-                {Object.values(scores).reduce((a, b) => a + b, 0)} points
+                {questions.reduce((total, question, index) => {
+                  const questionNum = String(index + 1);
+                  const isCorrect =
+                    question.type === "Fill in the Blank"
+                      ? question.options.some(
+                          (opt: any) =>
+                            opt.value.toLowerCase() ===
+                            (userAnswers[questionNum] || "").toLowerCase()
+                        )
+                      : (scores[questionNum] || 0) ===
+                        question.options.filter((opt: any) => opt.isCorrect)
+                          .length;
+                  return total + (isCorrect ? question.points : 0);
+                }, 0)}{" "}
+                points
               </div>
             </Card.Body>
           </Card>
@@ -629,8 +712,8 @@ export default function DestailsScreen() {
                 </select>
 
                 <label className="" style={{ fontSize: "1.1rem" }}>
-                  Enter your question and multiple possible answer choices, then
-                  select the correct answer. <br />
+                  Enter your question and answer choices, then
+                  select the correct answer(s). <br />
                 </label>
               </div>
               <div className="mb-4">
@@ -1002,17 +1085,14 @@ export default function DestailsScreen() {
           {questions.map((question, index) => (
             <Card key={index} className="mb-3">
               <Card.Body style={{ padding: 0 }}>
-                {" "}
-                {/* Remove default padding */}
-                {/* Light grey rectangle filling the width */}
                 <div
                   style={{
                     backgroundColor: "#f0f0f0",
                     padding: "15px",
-                    borderRadius: "8px 8px 0 0", // Rounded only on top corners
-                    display: "flex", // Align items horizontally
-                    justifyContent: "space-between", // Space between title and points
-                    alignItems: "center", // Center align vertically
+                    borderRadius: "8px 8px 0 0",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
                   <h5 style={{ margin: 0, flex: 1, fontWeight: "bold" }}>
@@ -1022,26 +1102,82 @@ export default function DestailsScreen() {
                     Points: {question.points}
                   </p>
                 </div>
-                {/* Render the question content */}
                 <div style={{ padding: "15px" }}>
                   <div
                     dangerouslySetInnerHTML={{ __html: question.question }}
                   />
-
                   <hr style={{ padding: "1px", borderTop: "1px solid #ccc" }} />
-
-                  {/* Render the options as checkboxes */}
                   <div>{renderAnswers(question, index)}</div>
                 </div>
-                <div></div>
               </Card.Body>
             </Card>
           ))}
-          {displayResults()}
+
+          {toggleResults && (
+            <Card className="mb-4">
+              <Card.Header>
+                <h4>Quiz Results</h4>
+              </Card.Header>
+              <Card.Body>
+                {questions.map((question, index) => {
+                  const questionNum = String(index + 1);
+                  const isCorrect =
+                    question.type === "Fill in the Blank"
+                      ? question.options.some(
+                          (opt: any) =>
+                            opt.value.toLowerCase() ===
+                            (userAnswers[questionNum] || "").toLowerCase()
+                        )
+                      : (scores[questionNum] || 0) ===
+                        question.options.filter((opt: any) => opt.isCorrect)
+                          .length;
+
+                  const pointsEarned = isCorrect ? question.points : 0;
+
+                  return (
+                    <div
+                      key={questionNum}
+                      className="mb-3 d-flex align-items-center"
+                    >
+                      {isCorrect ? (
+                        <CheckCircleFill
+                          className="text-success me-2"
+                          size={20}
+                        />
+                      ) : (
+                        <XCircleFill className="text-danger me-2" size={20} />
+                      )}
+                      <div>
+                        <strong>Question {questionNum}:</strong> {pointsEarned}{" "}
+                        out of {question.points} points
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="mt-4 pt-3 border-top">
+                  <strong>Total Score:</strong>{" "}
+                  {questions.reduce((total, question, index) => {
+                    const questionNum = String(index + 1);
+                    const isCorrect =
+                      question.type === "Fill in the Blank"
+                        ? question.options.some(
+                            (opt: any) =>
+                              opt.value.toLowerCase() ===
+                              (userAnswers[questionNum] || "").toLowerCase()
+                          )
+                        : (scores[questionNum] || 0) ===
+                          question.options.filter((opt: any) => opt.isCorrect)
+                            .length;
+                    return total + (isCorrect ? question.points : 0);
+                  }, 0)}{" "}
+                  points
+                </div>
+              </Card.Body>
+            </Card>
+          )}
 
           <Button variant="primary" onClick={handleSubmitOnClick}>
-            {" "}
-            Submit{" "}
+            Submit
           </Button>
         </Tab>
       </Tabs>
