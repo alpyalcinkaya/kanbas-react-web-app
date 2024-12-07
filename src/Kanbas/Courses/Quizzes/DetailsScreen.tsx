@@ -134,13 +134,17 @@ export default function DestailsScreen() {
 
   const handleDeleteQuestion = async (questionId: any) => {
     try {
-      console.log(`Attempting to delete question with ID: ${questionId}`);
       await quizClient.deleteQuestion(questionId);
       const updatedQuestions = questions.filter(
         (question) => question._id !== questionId
       );
-      console.log("Updated questions after deletion:", updatedQuestions);
       setQuestions(updatedQuestions);
+      
+      // Update quiz points
+      const totalPoints = calculateTotalPoints(updatedQuestions);
+      const updatedQuiz = { ...quiz, points: totalPoints };
+      await quizClient.updateQuiz(updatedQuiz);
+      setQuiz(updatedQuiz);
     } catch (error) {
       console.error("Error deleting question:", error);
       alert("Failed to delete question.");
@@ -185,23 +189,31 @@ export default function DestailsScreen() {
     try {
       if (newQuestion._id) {
         // Edit logic
-        console.log("Updating question with ID:", newQuestion._id);
         const updatedQuestion = await quizClient.updateQuestion(
           newQuestion._id,
           newQuestion
         );
-        setQuestions(
-          questions.map((q) =>
-            q._id === newQuestion._id ? updatedQuestion : q
-          )
+        const updatedQuestions = questions.map((q) =>
+          q._id === newQuestion._id ? updatedQuestion : q
         );
+        setQuestions(updatedQuestions);
+        
+        // Update quiz points
+        const totalPoints = calculateTotalPoints(updatedQuestions);
+        const updatedQuiz = { ...quiz, points: totalPoints };
+        await quizClient.updateQuiz(updatedQuiz);
+        setQuiz(updatedQuiz);
       } else {
         // Add logic
-        const savedQuestion = await quizClient.addQuestionToQuiz(
-          aid,
-          newQuestion
-        );
-        setQuestions([...questions, savedQuestion]);
+        const savedQuestion = await quizClient.addQuestionToQuiz(aid, newQuestion);
+        const updatedQuestions = [...questions, savedQuestion];
+        setQuestions(updatedQuestions);
+        
+        // Update quiz points
+        const totalPoints = calculateTotalPoints(updatedQuestions);
+        const updatedQuiz = { ...quiz, points: totalPoints };
+        await quizClient.updateQuiz(updatedQuiz);
+        setQuiz(updatedQuiz);
       }
       resetNewQuestion();
       setKey("questions-list");
@@ -209,6 +221,7 @@ export default function DestailsScreen() {
       console.error("Error saving question:", error);
     }
   };
+  
 
   // Function to reset the new question form fields to the default values
   const resetNewQuestion = () => {
@@ -232,6 +245,10 @@ export default function DestailsScreen() {
     resetNewQuestion();
     setEditingQuestion(null); // clear editing state
     setKey("questions-list");
+  };
+
+  const calculateTotalPoints = (questions: any[]) => {
+    return questions.reduce((total, question) => total + question.points, 0);
   };
 
   const handleMultipleChoiceAnswers = (e: any, opt: any, index: number) => {
@@ -339,22 +356,44 @@ export default function DestailsScreen() {
   };
 
   const handleSubmitOnClick = async () => {
+    // Calculate scores for fill-in-the-blank questions
     const newScores = { ...scores };
-
+    
     questions.forEach((question, index) => {
       if (question.type === "Fill in the Blank") {
         const questionNum = String(index + 1);
         const userAnswer = userAnswers[questionNum]?.toLowerCase() || "";
-        const isCorrect = question.options.some(
-          (opt: any) => opt.value.toLowerCase() === userAnswer
+        const isCorrect = question.options.some((opt: any) => 
+          opt.value.toLowerCase() === userAnswer
         );
-        newScores[questionNum] = isCorrect ? 1 : 0;
+        newScores[questionNum] = isCorrect ? question.points : 0;
       }
     });
-
+  
     setScores(newScores);
-    setToggleResults(!toggleResults);
-
+    
+    // Calculate total score
+    const totalScore = questions.reduce((total, question, index) => {
+      const questionNum = String(index + 1);
+      const isCorrect = question.type === "Fill in the Blank"
+        ? question.options.some((opt: any) => 
+            opt.value.toLowerCase() === (userAnswers[questionNum] || "").toLowerCase()
+          )
+        : (newScores[questionNum] || 0) === question.options.filter((opt: any) => opt.isCorrect).length;
+      return total + (isCorrect ? question.points : 0);
+    }, 0);
+  
+    // Save the score if user is a student
+    if (currentUser?.role === "STUDENT") {
+      try {
+        await quizClient.saveQuizScore(currentUser._id, aid, totalScore);
+      } catch (error) {
+        console.error("Error saving quiz score:", error);
+      }
+    }
+  
+    setToggleResults(true);
+    
     const updatedAttempts = quiz.numberAttempts - 1;
     const updatedQuiz = {
       ...quiz,
@@ -363,21 +402,7 @@ export default function DestailsScreen() {
     await quizClient.updateQuiz(updatedQuiz);
     setQuiz(updatedQuiz);
   };
-
-  const displayResults = () => {
-    const results = Object.entries(scores).map(([key, value]) => (
-      <div>
-        Question {key}: {value}
-      </div>
-    ));
-
-    return (
-      <div>
-        <h3> Your scores are: </h3>
-        {results}
-      </div>
-    );
-  };
+  
 
   // Student View Component
   if (currentUser?.role === "STUDENT") {

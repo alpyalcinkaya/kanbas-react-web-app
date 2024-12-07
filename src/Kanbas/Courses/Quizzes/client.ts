@@ -122,4 +122,17 @@ export const deleteQuestion = async (questionId: any) => {
   }
 };
 
+// In client.ts
+// Add these new methods
+export const fetchQuizScores = async (studentId: string) => {
+  const response = await axiosInstance.get(`/api/students/${studentId}/quiz-scores`);
+  return response.data;
+};
 
+export const saveQuizScore = async (studentId: string, quizId: string, score: number) => {
+  const response = await axiosInstance.post(`/api/students/${studentId}/quiz-scores`, {
+    quizId,
+    score
+  });
+  return response.data;
+};

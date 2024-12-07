@@ -21,7 +21,10 @@ export default function Quizzes() {
   const role = currentUser?.role; // Assuming 'role' is 'FACULTY' or 'STUDENT'
 
   const [quizzes, setQuizzes] = useState<any[]>([]);
-  const [openContextMenuQuizId, setOpenContextMenuQuizId] = useState<string | null>(null); // State for context menu
+  const [openContextMenuQuizId, setOpenContextMenuQuizId] = useState<
+    string | null
+  >(null); // State for context menu
+  const [quizScores, setQuizScores] = useState<{ [key: string]: number }>({});
 
   const fetchQuizzes = async () => {
     const quizzesData = await quizClient.findQuizzesForCourse(cid);
@@ -40,6 +43,21 @@ export default function Quizzes() {
       fetchQuizzes(); // Fetch quizzes when component mounts or role changes
     }
   }, [cid, role]);
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      if (role === "STUDENT" && currentUser?._id) {
+        try {
+          const scores = await quizClient.fetchQuizScores(currentUser._id);
+          setQuizScores(scores);
+        } catch (error) {
+          console.error("Error fetching quiz scores:", error);
+        }
+      }
+    };
+
+    fetchScores();
+  }, [role, currentUser?._id]);
 
   const handleDelete = async (quizId: string) => {
     if (window.confirm("Are you sure you want to delete this quiz?")) {
@@ -119,7 +137,9 @@ export default function Quizzes() {
                 <a
                   className="wd-quiz-link fw-bold d-block text-decoration-none text-dark"
                   onClick={() =>
-                    navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`)
+                    navigate(
+                      `/Kanbas/Courses/${cid}/Quizzes/${quiz._id}/preview`
+                    )
                   }
                   style={{ cursor: "pointer" }}
                 >
@@ -128,17 +148,28 @@ export default function Quizzes() {
                 <p className="mb-0 text-muted">
                   <strong>Available From:</strong> {quiz.availableFrom} <br />
                   <strong>Due:</strong> {quiz.dueDate} | {quiz.points} pts
+                  {role === "STUDENT" && quizScores[quiz._id] !== undefined && (
+                    <>
+                      <br />
+                      <strong>Your Score:</strong>{" "}
+                      <span
+                        className={`text-${
+                          quizScores[quiz._id] === quiz.points
+                            ? "success"
+                            : "danger"
+                        }`}
+                      >
+                        {quizScores[quiz._id]} / {quiz.points}
+                      </span>
+                    </>
+                  )}
                 </p>
               </div>
               <div className="d-flex align-items-center align-self-center position-relative">
                 {/* Conditionally render the symbol for FACULTY only */}
                 {role === "FACULTY" && (
                   <>
-                    {quiz.published ? (
-                      <GreenCheckmark />
-                    ) : (
-                      <UnpublishedIcon />
-                    )}
+                    {quiz.published ? <GreenCheckmark /> : <UnpublishedIcon />}
                   </>
                 )}
 
