@@ -314,9 +314,15 @@ export default function DestailsScreen() {
     ));
   };
 
-  const handleSubmitOnClick = () => {
-    console.log("### WHATSUPPPPPPP!!!");
+  const handleSubmitOnClick = async () => {
     setToggleResults(!toggleResults);
+    const updatedAttempts = quiz.numberAttempts - 1;
+    const updatedQuiz = {
+      ...quiz,
+      numberAttempts: updatedAttempts,
+    };
+    await quizClient.updateQuiz(updatedQuiz);
+    setQuiz(updatedQuiz);
   };
 
   const displayResults = () => {
@@ -360,7 +366,13 @@ export default function DestailsScreen() {
               </div>
               <div className="mb-3">
                 <strong>Instructions:</strong>
-                <div dangerouslySetInnerHTML={{ __html: quiz.description || "Answer all questions to the best of your ability." }} />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      quiz.description ||
+                      "Answer all questions to the best of your ability.",
+                  }}
+                />
               </div>
               <Button
                 variant="danger"
@@ -422,11 +434,11 @@ export default function DestailsScreen() {
 
         <Button
           variant="primary"
-          size="lg"
-          className="w-100 mb-4"
+          disabled={quiz.numberAttempts <= 0}
           onClick={handleSubmitOnClick}
         >
-          Submit Quiz
+          {" "}
+          {quiz.numberAttempts <= 0 ? "Max attempts reached" : "Submit"}{" "}
         </Button>
       </div>
     );
