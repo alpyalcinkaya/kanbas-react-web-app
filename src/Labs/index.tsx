@@ -17,7 +17,8 @@ export default function Labs() {
   return (
     <Provider store={store}>
       <div id="wd-labs">
-        <h1>Alp Yalcinkaya</h1>
+        <h1>Welcome to the Project Repository</h1>
+        <h2>Chris Alcantara, Haidar Halloway, Alp Yalcinkaya</h2>
         <TOC />
         <Routes>
           <Route path="/" element={<Navigate to="Lab1" />} />
