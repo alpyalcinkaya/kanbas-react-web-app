@@ -47,9 +47,6 @@ export default function DestailsScreen() {
   }, [editingQuestion, aid]);
   
   
-  
-
-  
 
   const [questionType, setQuestionType] = useState("Multiple Choice");
 
@@ -268,34 +265,63 @@ const handleDeleteQuestion = async (questionId: any) => {
     }
   }
 
-  const renderAnswers = (question: { options: any; type: string}, index: number) => {
-    const type = question.type;
-    let answerType: string;
-    if (type === "True/False") {
-      answerType = "radio"
-    } else if (type === "Multiple Choice") {
-      answerType = "checkbox"
-    }
+  // const renderAnswers = (question: { options: any; type: string}, index: number) => {
+  //   const type = question.type;
+  //   let answerType: string;
+  //   if (type === "True/False") {
+  //     answerType = "radio"
+  //   } else if (type === "Multiple Choice") {
+  //     answerType = "checkbox"
+  //   }
 
-    const answers = question.options.map((opt: any, optIndex: number) => (
-      <div key={optIndex} style={{ marginBottom: '10px' }}>
-        <input 
-          type= { answerType }
-          id={`question-${index}-option-${optIndex}`} 
-          name={`question-${index}`} 
-          value={opt.value} 
-          onChange={(e) => handleAnswer(type, e, opt, index)}
-        />
-        <label 
-          htmlFor={`question-${index}-option-${optIndex}`} 
-          style={{ marginLeft: '8px' }}
-        >
-          {opt.value}
-        </label>
-      </div>
-    ))
-    return answers
-  }
+  //   const answers = question.options.map((opt: any, optIndex: number) => (
+  //     <div key={optIndex} style={{ marginBottom: '10px' }}>
+  //       <input 
+  //         type= { answerType }
+  //         id={`question-${index}-option-${optIndex}`} 
+  //         name={`question-${index}`} 
+  //         value={opt.value} 
+  //         onChange={(e) => handleAnswer(type, e, opt, index)}
+  //       />
+  //       <label 
+  //         htmlFor={`question-${index}-option-${optIndex}`} 
+  //         style={{ marginLeft: '8px' }}
+  //       >
+  //         {opt.value}
+  //       </label>
+  //     </div>
+  //   ))
+  //   return answers
+  // }
+
+
+  
+  const renderAnswers = (question: { options: any; type: string }, index: number) => {
+    const type = question.type;
+    const answerType = type === "True/False" ? "radio" : "checkbox";
+
+    const answers = question.options.map((opt: any, optIndex: number) => {
+        const value = typeof opt === "string" ? opt : opt.value; // Handle both string and object formats
+        return (
+            <div key={optIndex} style={{ marginBottom: "10px" }}>
+                <input
+                    type={answerType}
+                    id={`question-${index}-option-${optIndex}`}
+                    name={`question-${index}`}
+                    value={value}
+                    onChange={(e) => handleAnswer(type, e, opt, index)}
+                />
+                <label
+                    htmlFor={`question-${index}-option-${optIndex}`}
+                    style={{ marginLeft: "8px" }}
+                >
+                    {value}
+                </label>
+            </div>
+        );
+    });
+    return answers;
+};
   
   const [toggleResults, setToggleResults] = useState(false);
 
