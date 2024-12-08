@@ -37,14 +37,18 @@ export default function Dashboard({
   // Fetch all courses and enrollments for students
   const fetchData = async () => {
     try {
+      // Both roles should be able to see all courses
+      const fetchedCourses = await courseClient.fetchAllCourses();
+      setAllCourses(fetchedCourses);
+
       if (currentUser.role === "STUDENT") {
-        const fetchedCourses = await courseClient.fetchAllCourses();
-        setAllCourses(fetchedCourses);
-        const enrollments = await enrollmentClient.findCoursesForUser(currentUser._id);
-        setEnrolledCourses(enrollments.map((enrollment: any) => enrollment._id));
-      } else if (currentUser.role === "FACULTY") {
-        const managedCourses = await userClient.findMyCourses();
-        setAllCourses(managedCourses);
+        // Only students need to track their enrollments
+        const enrollments = await enrollmentClient.findCoursesForUser(
+          currentUser._id
+        );
+        setEnrolledCourses(
+          enrollments.map((enrollment: any) => enrollment._id)
+        );
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
@@ -56,11 +60,12 @@ export default function Dashboard({
   }, [currentUser]);
 
   // Filter courses based on the student's view preference
-  const filteredCourses = currentUser.role === "STUDENT" 
-    ? (showAllCourses 
-        ? allCourses 
-        : allCourses.filter((course) => enrolledCourses.includes(course._id)))
-    : courses;
+  const filteredCourses =
+    currentUser.role === "STUDENT"
+      ? showAllCourses
+        ? allCourses
+        : allCourses.filter((course) => enrolledCourses.includes(course._id))
+      : courses;
 
   // Toggle enrollment for students
   const handleEnrollmentToggle = async (courseId: string) => {
@@ -135,7 +140,10 @@ export default function Dashboard({
         </>
       )}
 
-      <div id="wd-dashboard-courses" className="row row-cols-1 row-cols-md-5 g-4">
+      <div
+        id="wd-dashboard-courses"
+        className="row row-cols-1 row-cols-md-5 g-4"
+      >
         {filteredCourses.map((course: Course) => {
           const isEnrolled = enrolledCourses.includes(course._id);
 
@@ -166,7 +174,9 @@ export default function Dashboard({
                 {currentUser.role === "STUDENT" && (
                   <button
                     onClick={() => handleEnrollmentToggle(course._id)}
-                    className={`btn ${isEnrolled ? "btn-danger" : "btn-success"} w-100`}
+                    className={`btn ${
+                      isEnrolled ? "btn-danger" : "btn-success"
+                    } w-100`}
                   >
                     {isEnrolled ? "Unenroll" : "Enroll"}
                   </button>
