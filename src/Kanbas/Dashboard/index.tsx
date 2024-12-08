@@ -38,13 +38,13 @@ export default function Dashboard({
   const fetchData = async () => {
     try {
       if (currentUser.role === "STUDENT") {
-        // Fetch all available courses
         const fetchedCourses = await courseClient.fetchAllCourses();
         setAllCourses(fetchedCourses);
-        
-        // Fetch enrolled courses
         const enrollments = await enrollmentClient.findCoursesForUser(currentUser._id);
         setEnrolledCourses(enrollments.map((enrollment: any) => enrollment._id));
+      } else if (currentUser.role === "FACULTY") {
+        const managedCourses = await userClient.findMyCourses();
+        setAllCourses(managedCourses);
       }
     } catch (error) {
       console.error("Failed to fetch data:", error);
