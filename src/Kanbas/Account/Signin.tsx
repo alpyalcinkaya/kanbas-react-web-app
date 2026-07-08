@@ -7,7 +7,10 @@ import { useDispatch } from "react-redux";
 import * as client from "./client";
 
 export default function Signin() {
-  const [credentials, setCredentials] = useState<any>({});
+  const [credentials, setCredentials] = useState<any>({
+    username: "dark_knight",
+    password: "wayne123",
+  });
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const signin = async () => {
